@@ -36,6 +36,8 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
 | Timeout | `300` |
 
+> 首次运行 npx 会从 GitHub 拉取并构建，耗时约 1-2 分钟。后续运行使用缓存，启动更快。
+
 <img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
 
 连接成功后显示为 **Connected**：
@@ -72,23 +74,25 @@ cd deploy
 bash deploy.sh
 ```
 
-脚本会交互式提示输入飞书 App ID / Secret（也可通过环境变量预设），然后自动：
+脚本会交互式提示输入飞书 App ID / Secret（也可通过环境变量 `LARK_APP_ID` / `LARK_APP_SECRET` 预设），然后自动：
 - 构建 Docker 镜像并推送到 ECR
 - 创建 Secrets Manager 密钥
 - 注册飞书 OAuth Provider
 
+> 脚本完成后会输出 `agentcore configure` 和 `agentcore launch` 命令，需手动执行完成最终部署。
+
 详见 [deploy/](deploy/) 和 [infra/](infra/)（CDK 基础设施）。
 
-### 环境变量
+### 容器运行时环境变量
 
 | 变量 | 说明 |
 |---|---|
 | `MCP_TRANSPORT` | `stdio`（默认）或 `http` |
 | `PORT` | HTTP 端口，默认 8000 |
-| `LARKSUITE_CLI_APP_ID` | 飞书应用 App ID |
-| `LARKSUITE_CLI_APP_SECRET` | 飞书应用 App Secret |
-| `OAUTH_PROVIDER_NAME` | AgentCore OAuth provider 名称 |
-| `BIND_ADDRESS` | 绑定地址，默认 `0.0.0.0` |
+| `LARKSUITE_CLI_APP_ID` | 飞书应用 App ID（容器内 lark-cli 使用） |
+| `LARKSUITE_CLI_APP_SECRET` | 飞书应用 App Secret（容器内 lark-cli 使用） |
+| `OAUTH_PROVIDER_NAME` | AgentCore OAuth provider 名称，默认 `feishu-oauth-provider` |
+| `BIND_ADDRESS` | 绑定地址，默认 `0.0.0.0`（本地开发建议 `127.0.0.1`） |
 
 ---
 
