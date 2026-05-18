@@ -3,7 +3,7 @@ FROM node:22-slim
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
-RUN npm install -g @larksuite/cli && npm cache clean --force
+RUN npm install -g @larksuite/cli@1.0.32 && npm cache clean --force
 
 COPY package.json package-lock.json ./
 RUN npm ci --omit=dev --ignore-scripts

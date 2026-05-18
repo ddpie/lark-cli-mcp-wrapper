@@ -3,6 +3,7 @@ import {
   GetResourceOauth2TokenCommand,
 } from "@aws-sdk/client-bedrock-agentcore";
 import type { TokenResult } from "./types.js";
+import { logError } from "./logger.js";
 
 const PROVIDER_NAME = process.env.OAUTH_PROVIDER_NAME ?? "feishu-oauth-provider";
 const REGION = process.env.AWS_REGION ?? "us-east-1";
@@ -80,7 +81,7 @@ export async function resolveUserToken(workloadAccessToken: string): Promise<Tok
     response = await getClient().send(command);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    process.stderr.write(`[auth] AgentCore Identity error: ${msg}\n`);
+    logError("AgentCore Identity token resolution failed", { tool: "auth" });
     throw new Error("Failed to resolve user token from AgentCore Identity");
   }
 

@@ -7,6 +7,7 @@ import { createMcpServer, VERSION } from "./server.js";
 import { buildToolList, executeTool } from "./tools.js";
 import { resolveUserToken } from "./auth.js";
 import type { McpTool } from "./types.js";
+import { logInfo, logWarn } from "./logger.js";
 
 interface Session {
   server: Server;
@@ -25,6 +26,7 @@ function cleanStaleSessions(): void {
     if (now - session.lastActivity > SESSION_TTL_MS) {
       session.transport.close?.();
       sessions.delete(id);
+      logInfo("Session expired and cleaned up", { requestId: id });
     }
   }
 }
@@ -85,6 +87,7 @@ export async function startHttp(): Promise<HttpServer> {
     if (sessionId && sessions.has(sessionId)) {
       const session = sessions.get(sessionId)!;
       if (session.workloadToken !== workloadToken) {
+        logWarn("Session token mismatch — possible hijack attempt", { requestId: sessionId });
         res.writeHead(403, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Session token mismatch" }));
         return;
@@ -118,7 +121,7 @@ export async function startHttp(): Promise<HttpServer> {
 
   return new Promise((resolve) => {
     httpServer.listen(port, bindAddress, () => {
-      process.stderr.write(`lark-cli-mcp-wrapper listening on http://${bindAddress}:${port}\n`);
+      logInfo(`Server started on http://${bindAddress}:${port}`);
       resolve(httpServer);
     });
   });

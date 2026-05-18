@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { execa } from "execa";
 import type { ToolDef, McpTool, ToolResult } from "./types.js";
+import { logInfo, logError } from "./logger.js";
 
 const toolDefs = JSON.parse(
   readFileSync(new URL("./generated-tools.json", import.meta.url), "utf-8")
@@ -96,6 +97,9 @@ async function runLarkCli(cliArgs: string[], userToken?: string): Promise<ToolRe
     env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
   }
 
+  const toolName = cliArgs.slice(0, 2).join(" ");
+  const start = Date.now();
+
   try {
     const result = await execa("lark-cli", cliArgs, {
       timeout: 120000,
@@ -103,24 +107,32 @@ async function runLarkCli(cliArgs: string[], userToken?: string): Promise<ToolRe
       env,
     });
 
+    const duration = Date.now() - start;
     const output = result.stdout.trim();
+
     if (!output) {
+      logInfo("Tool executed", { tool: toolName, duration, status: "success" });
       return { content: [{ type: "text", text: '{"ok":true,"data":null}' }] };
     }
 
     try {
       const parsed = JSON.parse(output);
       if (parsed.ok === false) {
+        logError("Tool returned error", { tool: toolName, duration, status: "error" });
         return { content: [{ type: "text", text: output }], isError: true };
       }
+      logInfo("Tool executed", { tool: toolName, duration, status: "success" });
       return { content: [{ type: "text", text: output }] };
     } catch {
+      logInfo("Tool executed (non-JSON)", { tool: toolName, duration, status: "success" });
       return { content: [{ type: "text", text: output }] };
     }
   } catch (err: any) {
+    const duration = Date.now() - start;
     const stderr = err.stderr?.trim() ?? "";
     const stdout = err.stdout?.trim() ?? "";
     const message = stdout || stderr || err.message;
+    logError("Tool execution failed", { tool: toolName, duration, status: "error" });
     return { content: [{ type: "text", text: message }], isError: true };
   }
 }
