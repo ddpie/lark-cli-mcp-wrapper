@@ -1,4 +1,4 @@
-import { createServer, type Server as HttpServer } from "node:http";
+import { createServer, type Server as HttpServer, type IncomingMessage, type ServerResponse } from "node:http";
 import { randomUUID } from "node:crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
@@ -16,7 +16,7 @@ interface Session {
   lastActivity: number;
 }
 
-const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
+const SESSION_TTL_MS = 30 * 60 * 1000;
 const sessions = new Map<string, Session>();
 const tools = buildToolList();
 
@@ -43,6 +43,10 @@ function createSessionServer(workloadToken: string): Server {
       return { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true };
     }
 
+    if (!workloadToken) {
+      return executeTool(tool, args ?? {});
+    }
+
     const tokenResult = await resolveUserToken(workloadToken);
 
     if (tokenResult.authUrl) {
@@ -58,87 +62,111 @@ function createSessionServer(workloadToken: string): Server {
   return server;
 }
 
+function readBody(req: IncomingMessage): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const chunks: Buffer[] = [];
+    req.on("data", (chunk) => chunks.push(chunk));
+    req.on("end", () => resolve(Buffer.concat(chunks).toString()));
+    req.on("error", reject);
+  });
+}
+
+async function handleMcpRequest(req: IncomingMessage, res: ServerResponse): Promise<void> {
+  const sessionId = (req.headers["mcp-session-id"] ?? req.headers["x-amzn-bedrock-agentcore-runtime-session-id"]) as string | undefined;
+  const workloadToken = (req.headers["workloadaccesstoken"] ?? "") as string;
+
+  if (sessionId && sessions.has(sessionId)) {
+    const session = sessions.get(sessionId)!;
+    session.lastActivity = Date.now();
+    try {
+      await session.transport.handleRequest(req, res);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      logError("Error handling session request", { requestId: sessionId, message: msg });
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Internal Server Error" }));
+      }
+    }
+    return;
+  }
+
+  const server = createSessionServer(workloadToken);
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
+  });
+
+  transport.onclose = () => {
+    if (transport.sessionId) sessions.delete(transport.sessionId);
+  };
+
+  await server.connect(transport);
+
+  try {
+    await transport.handleRequest(req, res);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    logError("Error handling new session request", { message: msg });
+    if (!res.headersSent) {
+      res.writeHead(500, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Internal Server Error" }));
+    }
+  }
+
+  if (transport.sessionId) {
+    sessions.set(transport.sessionId, {
+      server,
+      transport,
+      workloadToken,
+      lastActivity: Date.now(),
+    });
+    logInfo("New session created", { requestId: transport.sessionId });
+  }
+}
+
 export async function startHttp(): Promise<HttpServer> {
-  const port = parseInt(process.env.PORT ?? "8000", 10);
+  const port = parseInt(process.env.PORT ?? "8080", 10);
   const bindAddress = process.env.BIND_ADDRESS ?? "0.0.0.0";
 
   const httpServer = createServer(async (req, res) => {
-    if (req.url === "/health" && req.method === "GET") {
+    const url = req.url ?? "";
+    const method = req.method ?? "GET";
+
+    // Health check — AgentCore uses /ping
+    if ((url === "/ping" || url === "/health") && method === "GET") {
       res.writeHead(200, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ status: "ok", name: "lark-cli-mcp-wrapper", version: VERSION }));
       return;
     }
 
-    if (req.url !== "/mcp") {
-      logWarn("Request to unknown path", { message: `${req.method} ${req.url}` });
-      res.writeHead(404);
-      res.end("Not Found");
-      return;
-    }
-
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    const workloadToken = (req.headers["workloadaccesstoken"] as string) ?? "";
-
-    if (!workloadToken) {
-      logWarn("Request rejected: missing WorkloadAccessToken");
-      res.writeHead(401, { "Content-Type": "application/json" });
-      res.end(JSON.stringify({ error: "WorkloadAccessToken header is required" }));
-      return;
-    }
-
-    if (sessionId && sessions.has(sessionId)) {
-      const session = sessions.get(sessionId)!;
-      if (session.workloadToken !== workloadToken) {
-        logWarn("Session token mismatch — possible hijack attempt", { requestId: sessionId });
-        res.writeHead(403, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Session token mismatch" }));
-        return;
-      }
-      session.lastActivity = Date.now();
+    // MCP endpoint — AgentCore sends to /invocations, standard MCP uses /mcp
+    if ((url === "/invocations" || url === "/mcp" || url === "/") && method === "POST") {
       try {
-        await session.transport.handleRequest(req, res);
+        await handleMcpRequest(req, res);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
-        logError("Error handling session request", { requestId: sessionId, message: msg });
+        logError("Unhandled error in MCP handler", { message: msg });
         if (!res.headersSent) {
-          res.writeHead(500);
-          res.end("Internal Server Error");
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Internal Server Error" }));
         }
       }
       return;
     }
 
-    const server = createSessionServer(workloadToken);
-    const transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-    });
-
-    transport.onclose = () => {
-      if (transport.sessionId) sessions.delete(transport.sessionId);
-    };
-
-    await server.connect(transport);
-
-    try {
-      await transport.handleRequest(req, res);
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err);
-      logError("Error handling new session request", { message: msg });
-      if (!res.headersSent) {
-        res.writeHead(500);
-        res.end("Internal Server Error");
+    // SSE/GET for existing sessions (MCP Streamable HTTP spec)
+    if (method === "GET" && (url === "/mcp" || url === "/invocations")) {
+      try {
+        await handleMcpRequest(req, res);
+      } catch {
+        res.writeHead(404);
+        res.end("Not Found");
       }
+      return;
     }
 
-    if (transport.sessionId) {
-      sessions.set(transport.sessionId, {
-        server,
-        transport,
-        workloadToken,
-        lastActivity: Date.now(),
-      });
-      logInfo("New session created", { requestId: transport.sessionId });
-    }
+    res.writeHead(404);
+    res.end("Not Found");
   });
 
   return new Promise((resolve) => {
