@@ -1,0 +1,37 @@
+{
+  "name": "lark-cli-mcp-wrapper",
+  "version": "0.1.0",
+  "description": "MCP server wrapping lark-cli as stdio transport",
+  "type": "module",
+  "main": "dist/index.js",
+  "bin": {
+    "lark-cli-mcp-wrapper": "dist/index.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "generate-tools": "tsx scripts/generate-tools.ts",
+    "prepare": "npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ddpie/lark-cli-mcp-wrapper.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.12.1",
+    "execa": "^9.5.2",
+    "zod": "^3.24.4"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.17",
+    "tsx": "^4.19.4",
+    "typescript": "^5.8.3"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "license": "MIT"
+}
