@@ -7,7 +7,7 @@ import { createMcpServer, VERSION } from "./server.js";
 import { buildToolList, executeTool } from "./tools.js";
 import { resolveUserToken } from "./auth.js";
 import type { McpTool } from "./types.js";
-import { logInfo, logWarn } from "./logger.js";
+import { logInfo, logWarn, logError } from "./logger.js";
 
 interface Session {
   server: Server;
@@ -70,6 +70,7 @@ export async function startHttp(): Promise<HttpServer> {
     }
 
     if (req.url !== "/mcp") {
+      logWarn("Request to unknown path", { message: `${req.method} ${req.url}` });
       res.writeHead(404);
       res.end("Not Found");
       return;
@@ -79,6 +80,7 @@ export async function startHttp(): Promise<HttpServer> {
     const workloadToken = (req.headers["workloadaccesstoken"] as string) ?? "";
 
     if (!workloadToken) {
+      logWarn("Request rejected: missing WorkloadAccessToken");
       res.writeHead(401, { "Content-Type": "application/json" });
       res.end(JSON.stringify({ error: "WorkloadAccessToken header is required" }));
       return;
@@ -93,7 +95,16 @@ export async function startHttp(): Promise<HttpServer> {
         return;
       }
       session.lastActivity = Date.now();
-      await session.transport.handleRequest(req, res);
+      try {
+        await session.transport.handleRequest(req, res);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logError("Error handling session request", { requestId: sessionId, message: msg });
+        if (!res.headersSent) {
+          res.writeHead(500);
+          res.end("Internal Server Error");
+        }
+      }
       return;
     }
 
@@ -107,7 +118,17 @@ export async function startHttp(): Promise<HttpServer> {
     };
 
     await server.connect(transport);
-    await transport.handleRequest(req, res);
+
+    try {
+      await transport.handleRequest(req, res);
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err);
+      logError("Error handling new session request", { message: msg });
+      if (!res.headersSent) {
+        res.writeHead(500);
+        res.end("Internal Server Error");
+      }
+    }
 
     if (transport.sessionId) {
       sessions.set(transport.sessionId, {
@@ -116,12 +137,15 @@ export async function startHttp(): Promise<HttpServer> {
         workloadToken,
         lastActivity: Date.now(),
       });
+      logInfo("New session created", { requestId: transport.sessionId });
     }
   });
 
   return new Promise((resolve) => {
     httpServer.listen(port, bindAddress, () => {
-      logInfo(`Server started on http://${bindAddress}:${port}`);
+      logInfo("Server started", {
+        message: `http://${bindAddress}:${port} | version=${VERSION} | region=${process.env.AWS_REGION ?? "us-east-1"} | provider=${process.env.OAUTH_PROVIDER_NAME ?? "feishu-oauth-provider"}`,
+      });
       resolve(httpServer);
     });
   });

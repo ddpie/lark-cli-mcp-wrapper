@@ -24,14 +24,13 @@ class LarkMcpStack extends cdk.Stack {
       lifecycleRules: [{ maxImageCount: 10 }],
     });
 
-    // Secrets Manager — Lark credentials
+    // Secrets Manager — Lark credentials (placeholder, populated by deploy.sh)
     const secret = new secretsmanager.Secret(this, "LarkCredentials", {
       secretName: "lark-cli-mcp-wrapper/credentials",
-      description: "Feishu/Lark app credentials for MCP server",
-      generateSecretString: {
-        secretStringTemplate: JSON.stringify({ LARK_APP_ID: props.larkAppId }),
-        generateStringKey: "LARK_APP_SECRET",
-      },
+      description: "Feishu/Lark app credentials — update via deploy.sh or AWS Console",
+      secretStringValue: cdk.SecretValue.unsafePlainText(
+        JSON.stringify({ LARK_APP_ID: props.larkAppId || "REPLACE_ME", LARK_APP_SECRET: "REPLACE_ME" })
+      ),
     });
 
     // CloudWatch Log Group (AgentCore sends container logs here)

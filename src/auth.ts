@@ -81,7 +81,7 @@ export async function resolveUserToken(workloadAccessToken: string): Promise<Tok
     response = await getClient().send(command);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
-    logError("AgentCore Identity token resolution failed", { tool: "auth" });
+    logError("AgentCore Identity token resolution failed", { tool: "auth", message: msg });
     throw new Error("Failed to resolve user token from AgentCore Identity");
   }
 
