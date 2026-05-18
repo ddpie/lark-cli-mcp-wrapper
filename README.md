@@ -5,24 +5,48 @@
 ## 前置条件
 
 - [Node.js](https://nodejs.org/) >= 18
-  ```bash
-  # macOS
-  brew install node
-  # 或使用 nvm
-  nvm install 18
-  ```
 - [Git](https://git-scm.com/downloads)
-  ```bash
-  # macOS
-  brew install git
-  # Ubuntu/Debian
-  sudo apt install git
-  ```
 - [`lark-cli`](https://github.com/larksuite/cli)（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
-  ```bash
-  npm install -g @larksuite/cli
-  lark-cli auth login
-  ```
+
+### macOS
+
+```bash
+brew install node git
+```
+
+```bash
+npm install -g @larksuite/cli
+```
+
+```bash
+lark-cli auth login
+```
+
+### Ubuntu/Debian
+
+```bash
+sudo apt install nodejs npm git
+```
+
+```bash
+npm install -g @larksuite/cli
+```
+
+```bash
+lark-cli auth login
+```
+
+### Windows
+
+从以下地址下载安装包：[Node.js](https://nodejs.org/) 、[Git](https://git-scm.com/downloads)，安装完成后打开终端执行：
+
+```bash
+npm install -g @larksuite/cli
+```
+
+```bash
+lark-cli auth login
+```
 
 ## 使用
 
