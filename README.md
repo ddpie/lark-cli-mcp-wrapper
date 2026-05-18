@@ -23,7 +23,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | 字段 | 值 |
 |---|---|
 | Connection type | Local |
-| Name | Lark CLI |
+| Name | Lark CLI MCP Wrapper |
 | Command | `npx` |
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
 | Timeout | `300` |
