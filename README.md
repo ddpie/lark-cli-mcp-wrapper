@@ -68,7 +68,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 > `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。Timeout 单位为秒，设为 300 是因为部分飞书 API 调用涉及网络请求，默认超时可能不够。
 
-![Add MCP 配置](images/mcp-add-config.png)
+<img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
 
 ### 验证
 
