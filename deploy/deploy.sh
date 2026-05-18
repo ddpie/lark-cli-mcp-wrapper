@@ -1,6 +1,17 @@
 #!/bin/bash
 set -euo pipefail
 
+# Interactive prompts for credentials (skipped if env vars are set)
+if [ -z "${LARK_APP_ID:-}" ]; then
+  read -p "请输入飞书 App ID: " LARK_APP_ID
+  export LARK_APP_ID
+fi
+if [ -z "${LARK_APP_SECRET:-}" ]; then
+  read -s -p "请输入飞书 App Secret: " LARK_APP_SECRET
+  echo ""
+  export LARK_APP_SECRET
+fi
+
 # Configuration
 REGION="${AWS_REGION:-us-east-1}"
 ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
