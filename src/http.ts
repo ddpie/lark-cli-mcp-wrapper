@@ -140,9 +140,25 @@ export async function startHttp(): Promise<HttpServer> {
     }
 
     // MCP endpoint — AgentCore sends to /invocations, standard MCP uses /mcp
-    if ((url === "/invocations" || url === "/mcp" || url === "/") && method === "POST") {
+    if (method === "POST") {
+      const body = await readBody(req);
+      const bodyHex = Buffer.from(body).toString("hex").substring(0, 200);
+      logInfo("POST request", {
+        message: `path=${url} content-type=${req.headers["content-type"]} len=${body.length} hex=${bodyHex} utf8=${body.substring(0, 200)}`,
+      });
+
+      // Reconstruct request stream for transport
+      const { Readable } = await import("node:stream");
+      const fakeReq = Object.assign(Readable.from(Buffer.from(body)), {
+        method: req.method,
+        url: "/mcp",
+        headers: req.headers,
+        socket: req.socket,
+        connection: req.connection,
+      }) as any;
+
       try {
-        await handleMcpRequest(req, res);
+        await handleMcpRequest(fakeReq, res);
       } catch (err) {
         const msg = err instanceof Error ? err.message : String(err);
         logError("Unhandled error in MCP handler", { message: msg });
