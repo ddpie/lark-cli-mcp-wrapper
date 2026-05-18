@@ -56,13 +56,15 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 > 如果是从源码构建，Command 填 `node`，Arguments 填 `/path/to/lark-cli-mcp-wrapper/dist/index.js`。
 
-## 更新工具列表
+## 更新工具列表（仅源码构建）
 
 `lark-cli` 升级后重新生成即可，无需改代码：
 
 ```bash
 npm run generate-tools && npm run build
 ```
+
+> npx 方式使用的是仓库内置的工具列表，无需手动更新。
 
 ## License
 
