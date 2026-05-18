@@ -68,9 +68,15 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 > `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。Timeout 单位为秒，设为 300 是因为部分飞书 API 调用涉及网络请求，默认超时可能不够。
 
+![Add MCP 配置](images/mcp-add-config.png)
+
 ### 验证
 
-配置完成后，在 Quick Desktop 对话中输入类似以下内容测试：
+连接成功后，可以在 Capabilities → MCP 中看到 Lark CLI MCP Wrapper 显示为 **Connected**，并列出所有可用工具：
+
+![MCP 连接成功](images/mcp-connected.png)
+
+在 Quick Desktop 对话中输入类似以下内容测试：
 
 ```
 帮我查一下今天的日程
