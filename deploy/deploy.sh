@@ -193,7 +193,7 @@ else
     --name "$GATEWAY_NAME" \
     --protocol-type MCP \
     --role-arn "$GATEWAY_ROLE_ARN" \
-    --authorizer-type AWS_IAM \
+    --authorizer-type NONE \
     --region "$REGION" --output text --query 'gatewayId' 2>/dev/null || echo "")
   if [ -z "$GATEWAY_ID" ]; then
     echo "  ⚠ Gateway 创建失败（可能名称格式不支持），跳过"
