@@ -65,4 +65,20 @@ describe("resolveUserToken", () => {
     expect(mockSend).toHaveBeenCalledTimes(2);
     expect(result).toEqual({ token: "now-has-token" });
   });
+
+  it("throws a safe error when SDK call fails", async () => {
+    mockSend.mockRejectedValue(new Error("NetworkError: secret stuff"));
+
+    await expect(resolveUserToken("jwt-error")).rejects.toThrow(
+      "Failed to resolve user token from AgentCore Identity"
+    );
+  });
+
+  it("throws when response has neither accessToken nor authorizationUrl", async () => {
+    mockSend.mockResolvedValue({ sessionUri: "some-session" });
+
+    await expect(resolveUserToken("jwt-weird")).rejects.toThrow(
+      "neither accessToken nor authorizationUrl"
+    );
+  });
 });

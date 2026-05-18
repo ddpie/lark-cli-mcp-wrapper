@@ -24,21 +24,23 @@ docker build -t "${ECR_URI}:${IMAGE_TAG}" .
 docker push "${ECR_URI}:${IMAGE_TAG}"
 
 echo "=== Creating/updating Secrets Manager secret ==="
-SECRET_JSON=$(jq -n --arg id "$LARK_APP_ID" --arg secret "$LARK_APP_SECRET" \
-  '{LARK_APP_ID: $id, LARK_APP_SECRET: $secret}')
+SECRET_FILE=$(mktemp)
+trap 'rm -f "$SECRET_FILE"' EXIT
+jq -n --arg id "$LARK_APP_ID" --arg secret "$LARK_APP_SECRET" \
+  '{LARK_APP_ID: $id, LARK_APP_SECRET: $secret}' > "$SECRET_FILE"
 
 if ! aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region "$REGION" 2>/dev/null; then
   echo "Creating secret..."
   aws secretsmanager create-secret \
     --name "$SECRET_NAME" \
     --region "$REGION" \
-    --secret-string "$SECRET_JSON"
+    --secret-string "file://$SECRET_FILE"
 else
   echo "Secret exists, updating..."
   aws secretsmanager put-secret-value \
     --secret-id "$SECRET_NAME" \
     --region "$REGION" \
-    --secret-string "$SECRET_JSON"
+    --secret-string "file://$SECRET_FILE"
 fi
 
 SECRET_ARN=$(aws secretsmanager describe-secret --secret-id "$SECRET_NAME" --region "$REGION" --query ARN --output text)

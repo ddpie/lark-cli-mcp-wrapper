@@ -90,6 +90,41 @@ export function buildToolList(): McpTool[] {
   return [...shortcuts, RAW_API_TOOL];
 }
 
+async function runLarkCli(cliArgs: string[], userToken?: string): Promise<ToolResult> {
+  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
+  if (userToken) {
+    env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
+  }
+
+  try {
+    const result = await execa("lark-cli", cliArgs, {
+      timeout: 120000,
+      maxBuffer: 10 * 1024 * 1024,
+      env,
+    });
+
+    const output = result.stdout.trim();
+    if (!output) {
+      return { content: [{ type: "text", text: '{"ok":true,"data":null}' }] };
+    }
+
+    try {
+      const parsed = JSON.parse(output);
+      if (parsed.ok === false) {
+        return { content: [{ type: "text", text: output }], isError: true };
+      }
+      return { content: [{ type: "text", text: output }] };
+    } catch {
+      return { content: [{ type: "text", text: output }] };
+    }
+  } catch (err: any) {
+    const stderr = err.stderr?.trim() ?? "";
+    const stdout = err.stdout?.trim() ?? "";
+    const message = stdout || stderr || err.message;
+    return { content: [{ type: "text", text: message }], isError: true };
+  }
+}
+
 export async function executeTool(
   tool: McpTool,
   args: Record<string, unknown>,
@@ -118,47 +153,7 @@ export async function executeTool(
     cliArgs.push("--yes");
   }
 
-  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
-  if (userToken) {
-    env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
-  }
-
-  try {
-    const result = await execa("lark-cli", cliArgs, {
-      timeout: 120000,
-      maxBuffer: 10 * 1024 * 1024,
-      env,
-    });
-
-    const output = result.stdout.trim();
-    if (!output) {
-      return { content: [{ type: "text", text: '{"ok":true,"data":null}' }] };
-    }
-
-    // Validate JSON envelope
-    try {
-      const parsed = JSON.parse(output);
-      if (parsed.ok === false) {
-        return {
-          content: [{ type: "text", text: output }],
-          isError: true,
-        };
-      }
-      return { content: [{ type: "text", text: output }] };
-    } catch {
-      return { content: [{ type: "text", text: output }] };
-    }
-  } catch (err: any) {
-    const stderr = err.stderr?.trim() ?? "";
-    const stdout = err.stdout?.trim() ?? "";
-    const message = stdout || stderr || err.message;
-
-    // Exit code 10 = confirmation required (should not happen with --yes)
-    return {
-      content: [{ type: "text", text: message }],
-      isError: true,
-    };
-  }
+  return runLarkCli(cliArgs, userToken);
 }
 
 async function executeRawApi(
@@ -167,41 +162,16 @@ async function executeRawApi(
 ): Promise<ToolResult> {
   const method = String(args.method ?? "GET");
   const path = String(args.path ?? "");
+
+  if (!path) {
+    return { content: [{ type: "text", text: "Error: path is required" }], isError: true };
+  }
+
   const cliArgs = ["api", method, path, "--format", "json"];
 
   if (args.params) cliArgs.push("--params", String(args.params));
   if (args.data) cliArgs.push("--data", String(args.data));
   if (args.page_all) cliArgs.push("--page-all");
 
-  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
-  if (userToken) {
-    env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
-  }
-
-  try {
-    const result = await execa("lark-cli", cliArgs, {
-      timeout: 120000,
-      maxBuffer: 10 * 1024 * 1024,
-      env,
-    });
-
-    const output = result.stdout.trim();
-    if (!output) {
-      return { content: [{ type: "text", text: '{"ok":true,"data":null}' }] };
-    }
-    try {
-      const parsed = JSON.parse(output);
-      if (parsed.ok === false) {
-        return { content: [{ type: "text", text: output }], isError: true };
-      }
-      return { content: [{ type: "text", text: output }] };
-    } catch {
-      return { content: [{ type: "text", text: output }] };
-    }
-  } catch (err: any) {
-    const stderr = err.stderr?.trim() ?? "";
-    const stdout = err.stdout?.trim() ?? "";
-    const message = stdout || stderr || err.message;
-    return { content: [{ type: "text", text: message }], isError: true };
-  }
+  return runLarkCli(cliArgs, userToken);
 }

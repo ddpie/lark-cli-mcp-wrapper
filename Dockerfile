@@ -10,6 +10,9 @@ RUN npm ci --omit=dev --ignore-scripts
 
 COPY dist/ ./dist/
 
+RUN useradd -r -s /bin/false app && chown -R app:app /app
+USER app
+
 ENV MCP_TRANSPORT=http
 ENV PORT=8000
 ENV NO_COLOR=1

@@ -12,10 +12,24 @@ interface Session {
   server: Server;
   transport: InstanceType<typeof StreamableHTTPServerTransport>;
   workloadToken: string;
+  lastActivity: number;
 }
 
+const SESSION_TTL_MS = 30 * 60 * 1000; // 30 minutes
 const sessions = new Map<string, Session>();
 const tools = buildToolList();
+
+function cleanStaleSessions(): void {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (now - session.lastActivity > SESSION_TTL_MS) {
+      session.transport.close?.();
+      sessions.delete(id);
+    }
+  }
+}
+
+setInterval(cleanStaleSessions, 60_000).unref();
 
 function createSessionServer(workloadToken: string): Server {
   const { server } = createMcpServer(tools);
@@ -70,6 +84,7 @@ export async function startHttp(): Promise<HttpServer> {
 
     if (sessionId && sessions.has(sessionId)) {
       const session = sessions.get(sessionId)!;
+      session.lastActivity = Date.now();
       await session.transport.handleRequest(req, res);
       return;
     }
@@ -87,7 +102,12 @@ export async function startHttp(): Promise<HttpServer> {
     await transport.handleRequest(req, res);
 
     if (transport.sessionId) {
-      sessions.set(transport.sessionId, { server, transport, workloadToken });
+      sessions.set(transport.sessionId, {
+        server,
+        transport,
+        workloadToken,
+        lastActivity: Date.now(),
+      });
     }
   });
 

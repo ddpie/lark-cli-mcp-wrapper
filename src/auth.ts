@@ -23,6 +23,7 @@ function getClient(): BedrockAgentCoreClient {
 interface CacheEntry {
   token: string;
   expiresAt: number;
+  lastAccess: number;
 }
 
 const tokenCache = new Map<string, CacheEntry>();
@@ -38,15 +39,23 @@ function getCached(key: string): string | null {
     tokenCache.delete(key);
     return null;
   }
+  entry.lastAccess = Date.now();
   return entry.token;
 }
 
 function setCache(key: string, token: string): void {
   if (tokenCache.size >= CACHE_MAX_SIZE) {
-    const oldest = tokenCache.keys().next().value;
-    if (oldest) tokenCache.delete(oldest);
+    let lruKey: string | null = null;
+    let lruTime = Infinity;
+    for (const [k, v] of tokenCache) {
+      if (v.lastAccess < lruTime) {
+        lruTime = v.lastAccess;
+        lruKey = k;
+      }
+    }
+    if (lruKey) tokenCache.delete(lruKey);
   }
-  tokenCache.set(key, { token, expiresAt: Date.now() + CACHE_TTL_MS });
+  tokenCache.set(key, { token, expiresAt: Date.now() + CACHE_TTL_MS, lastAccess: Date.now() });
 }
 
 export async function resolveUserToken(workloadAccessToken: string): Promise<TokenResult> {
@@ -69,7 +78,9 @@ export async function resolveUserToken(workloadAccessToken: string): Promise<Tok
       resourceOauth2ReturnUrl: CALLBACK_URL || undefined,
     });
     response = await getClient().send(command);
-  } catch {
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    process.stderr.write(`[auth] AgentCore Identity error: ${msg}\n`);
     throw new Error("Failed to resolve user token from AgentCore Identity");
   }
 
