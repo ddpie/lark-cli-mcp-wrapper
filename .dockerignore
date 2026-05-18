@@ -1,0 +1,10 @@
+node_modules
+.git
+.claude
+vendor
+tests
+*.md
+tsconfig.json
+vitest.config.ts
+src
+scripts
