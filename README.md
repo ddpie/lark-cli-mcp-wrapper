@@ -6,15 +6,12 @@
 
 - Node.js >= 18
 - Git
+  - macOS: `brew install git`
+  - Ubuntu/Debian: `sudo apt install git`
+  - Windows: 从 https://git-scm.com/downloads 下载安装
 - [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
 
 ## 使用
-
-```bash
-npx github:ddpie/lark-cli-mcp-wrapper
-```
-
-首次运行会自动从 GitHub 拉取并构建，无需手动 clone。
 
 ### Amazon Quick Desktop 配置
 
