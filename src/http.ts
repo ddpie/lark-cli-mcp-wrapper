@@ -1,133 +1,149 @@
-import { BedrockAgentCoreApp } from "bedrock-agentcore/runtime";
-import type { RequestContext } from "bedrock-agentcore/runtime";
+import { createServer, type Server as HttpServer } from "node:http";
+import { randomUUID } from "node:crypto";
+import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
+import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import type { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { createMcpServer, VERSION } from "./server.js";
 import { buildToolList, executeTool } from "./tools.js";
 import { resolveUserToken } from "./auth.js";
 import type { McpTool } from "./types.js";
-import { logInfo, logError } from "./logger.js";
+import { logInfo, logWarn, logError } from "./logger.js";
 
+interface Session {
+  server: Server;
+  transport: InstanceType<typeof StreamableHTTPServerTransport>;
+  workloadToken: string;
+  lastActivity: number;
+}
+
+const SESSION_TTL_MS = 30 * 60 * 1000;
+const sessions = new Map<string, Session>();
 const tools = buildToolList();
 
-async function handleInvocation(payload: unknown, context: RequestContext): Promise<unknown> {
-  const { sessionId, workloadAccessToken } = context;
-
-  logInfo("Invocation received", { requestId: sessionId, message: `payload=${JSON.stringify(payload).substring(0, 200)}` });
-
-  const request = payload as { method?: string; params?: { name?: string; arguments?: Record<string, unknown> } };
-
-  // Handle MCP initialize
-  if (request.method === "initialize") {
-    return {
-      jsonrpc: "2.0",
-      id: (payload as any).id,
-      result: {
-        protocolVersion: "2024-11-05",
-        capabilities: { tools: {} },
-        serverInfo: { name: "lark-cli-mcp-wrapper", version: VERSION },
-      },
-    };
+function cleanStaleSessions(): void {
+  const now = Date.now();
+  for (const [id, session] of sessions) {
+    if (now - session.lastActivity > SESSION_TTL_MS) {
+      session.transport.close?.();
+      sessions.delete(id);
+      logInfo("Session expired", { requestId: id });
+    }
   }
+}
 
-  // Handle MCP tools/list
-  if (request.method === "tools/list") {
-    return {
-      jsonrpc: "2.0",
-      id: (payload as any).id,
-      result: { tools: tools.map((t) => t.schema) },
-    };
-  }
+setInterval(cleanStaleSessions, 60_000).unref();
 
-  // Handle MCP tools/call
-  if (request.method === "tools/call") {
-    const { name, arguments: args } = request.params ?? {};
+function createSessionServer(workloadToken: string): Server {
+  const { server } = createMcpServer(tools);
+
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
     const tool = tools.find((t: McpTool) => t.schema.name === name);
-
     if (!tool) {
+      return { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true };
+    }
+
+    if (!workloadToken) {
+      return executeTool(tool, args ?? {});
+    }
+
+    const tokenResult = await resolveUserToken(workloadToken);
+    if (tokenResult.authUrl) {
       return {
-        jsonrpc: "2.0",
-        id: (payload as any).id,
-        result: { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true },
+        content: [{ type: "text", text: `请先授权飞书访问权限：${tokenResult.authUrl}` }],
+        isError: true,
       };
     }
 
-    let userToken: string | undefined;
-    if (workloadAccessToken) {
-      const tokenResult = await resolveUserToken(workloadAccessToken);
-      if (tokenResult.authUrl) {
-        return {
-          jsonrpc: "2.0",
-          id: (payload as any).id,
-          result: {
-            content: [{ type: "text", text: `请先授权飞书访问权限：${tokenResult.authUrl}` }],
-            isError: true,
-          },
-        };
-      }
-      userToken = tokenResult.token;
-    }
+    return executeTool(tool, args ?? {}, tokenResult.token);
+  });
 
-    const result = await executeTool(tool, args ?? {}, userToken);
-    return {
-      jsonrpc: "2.0",
-      id: (payload as any).id,
-      result,
-    };
-  }
-
-  // Handle notifications (no response needed) and unknown methods
-  if (request.method === "notifications/initialized") {
-    return { jsonrpc: "2.0", id: (payload as any).id, result: {} };
-  }
-
-  return {
-    jsonrpc: "2.0",
-    id: (payload as any).id,
-    error: { code: -32601, message: `Method not found: ${request.method}` },
-  };
+  return server;
 }
 
-export async function startHttp(): Promise<void> {
-  const app = new BedrockAgentCoreApp({
-    invocationHandler: { process: handleInvocation },
-    config: {
-      contentTypeParsers: [
-        {
-          contentType: "application/json",
-          parseAs: "stream" as const,
-          parser: (request: unknown, payload: any, done: (err: Error | null, body?: unknown) => void) => {
-            const chunks: Buffer[] = [];
-            payload.on("data", (chunk: Buffer) => chunks.push(chunk));
-            payload.on("end", () => {
-              const raw = Buffer.concat(chunks);
-              // Try JSON first
-              try {
-                const body = JSON.parse(raw.toString("utf-8"));
-                done(null, body);
-                return;
-              } catch {
-                // Not valid JSON — try CBOR
-              }
-              import("@smithy/core/cbor").then(({ cbor }) => {
-                try {
-                  const decoded = cbor.deserialize(new Uint8Array(raw));
-                  done(null, decoded);
-                } catch {
-                  done(new Error(`Unable to parse body (${raw.length} bytes, hex: ${raw.toString("hex").substring(0, 40)})`));
-                }
-              }).catch(() => {
-                done(new Error(`Unable to parse body (${raw.length} bytes)`));
-              });
-            });
-            payload.on("error", (err: Error) => done(err));
-          },
-        },
-      ],
-    },
+async function handleMcpRequest(
+  req: import("node:http").IncomingMessage,
+  res: import("node:http").ServerResponse,
+): Promise<void> {
+  const sessionId = (req.headers["mcp-session-id"] ?? req.headers["x-amzn-bedrock-agentcore-runtime-session-id"]) as string | undefined;
+  const workloadToken = (req.headers["workloadaccesstoken"] ?? "") as string;
+
+  if (sessionId && sessions.has(sessionId)) {
+    const session = sessions.get(sessionId)!;
+    if (session.workloadToken !== workloadToken && workloadToken) {
+      logWarn("Session token mismatch", { requestId: sessionId });
+      res.writeHead(403, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ error: "Session token mismatch" }));
+      return;
+    }
+    session.lastActivity = Date.now();
+    await session.transport.handleRequest(req, res);
+    return;
+  }
+
+  const server = createSessionServer(workloadToken);
+  const transport = new StreamableHTTPServerTransport({
+    sessionIdGenerator: () => randomUUID(),
   });
 
-  const port = parseInt(process.env.PORT ?? "8080", 10);
-  logInfo("Server starting", {
-    message: `port=${port} | version=${VERSION} | region=${process.env.AWS_REGION ?? "us-east-1"}`,
+  transport.onclose = () => {
+    if (transport.sessionId) sessions.delete(transport.sessionId);
+  };
+
+  await server.connect(transport);
+  await transport.handleRequest(req, res);
+
+  if (transport.sessionId) {
+    sessions.set(transport.sessionId, {
+      server,
+      transport,
+      workloadToken,
+      lastActivity: Date.now(),
+    });
+    logInfo("New session", { requestId: transport.sessionId });
+  }
+}
+
+export async function startHttp(): Promise<HttpServer> {
+  const port = parseInt(process.env.PORT ?? "8000", 10);
+  const bindAddress = process.env.BIND_ADDRESS ?? "0.0.0.0";
+
+  const httpServer = createServer(async (req, res) => {
+    const url = req.url ?? "";
+    const method = req.method ?? "GET";
+
+    // Health check (AgentCore uses /ping)
+    if ((url === "/ping" || url === "/health") && method === "GET") {
+      res.writeHead(200, { "Content-Type": "application/json" });
+      res.end(JSON.stringify({ status: "ok", name: "lark-cli-mcp-wrapper", version: VERSION }));
+      return;
+    }
+
+    // MCP Streamable HTTP endpoint
+    if (url === "/mcp") {
+      try {
+        await handleMcpRequest(req, res);
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err);
+        logError("MCP handler error", { message: msg });
+        if (!res.headersSent) {
+          res.writeHead(500, { "Content-Type": "application/json" });
+          res.end(JSON.stringify({ error: "Internal Server Error" }));
+        }
+      }
+      return;
+    }
+
+    res.writeHead(404);
+    res.end("Not Found");
   });
-  await app.run({ port });
+
+  return new Promise((resolve) => {
+    httpServer.listen(port, bindAddress, () => {
+      logInfo("Server started", {
+        message: `http://${bindAddress}:${port}/mcp | version=${VERSION}`,
+      });
+      resolve(httpServer);
+    });
+  });
 }
