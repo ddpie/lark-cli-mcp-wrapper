@@ -79,6 +79,46 @@ const RAW_API_TOOL: McpTool = {
   },
 };
 
+const GATEWAY_TOOLS = new Set([
+  // IM (5)
+  "lark_im_messages_send",
+  "lark_im_messages_search",
+  "lark_im_chat_list",
+  "lark_im_chat_messages_list",
+  "lark_im_chat_search",
+  // Calendar (4)
+  "lark_calendar_agenda",
+  "lark_calendar_create",
+  "lark_calendar_freebusy",
+  "lark_calendar_room_find",
+  // Docs (4)
+  "lark_docs_create",
+  "lark_docs_fetch",
+  "lark_docs_search",
+  "lark_docs_update",
+  // Base (4)
+  "lark_base_base_get",
+  "lark_base_data_query",
+  "lark_base_record_batch_create",
+  "lark_base_record_search",
+  // Drive (3)
+  "lark_drive_search",
+  "lark_drive_upload",
+  "lark_drive_download",
+  // Task (3)
+  "lark_task_create",
+  "lark_task_get_my_tasks",
+  "lark_task_complete",
+  // Contact (2)
+  "lark_contact_search_user",
+  "lark_contact_get_user",
+  // Sheets (2)
+  "lark_sheets_read",
+  "lark_sheets_write",
+  // Raw API (1) — covers everything else
+  "lark_raw_api",
+]);
+
 export function buildToolList(): McpTool[] {
   const shortcuts = (toolDefs as ToolDef[]).map((def) => ({
     schema: {
@@ -88,7 +128,11 @@ export function buildToolList(): McpTool[] {
     },
     def,
   }));
-  return [...shortcuts, RAW_API_TOOL];
+  const all = [...shortcuts, RAW_API_TOOL];
+  if (process.env.TOOL_MODE === "gateway") {
+    return all.filter((t) => GATEWAY_TOOLS.has(t.schema.name));
+  }
+  return all;
 }
 
 async function runLarkCli(cliArgs: string[], userToken?: string): Promise<ToolResult> {

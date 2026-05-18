@@ -162,7 +162,7 @@ else
     --network-configuration '{"networkMode":"PUBLIC"}' \
     --role-arn "$RUNTIME_ROLE_ARN" \
     --protocol-configuration '{"serverProtocol":"MCP"}' \
-    --environment-variables "{\"MCP_TRANSPORT\":\"http\",\"PORT\":\"8000\",\"NO_COLOR\":\"1\",\"LARKSUITE_CLI_BRAND\":\"feishu\",\"LARKSUITE_CLI_APP_ID\":\"${LARK_APP_ID}\",\"LARKSUITE_CLI_APP_SECRET\":\"${LARK_APP_SECRET}\"}" \
+    --environment-variables "{\"MCP_TRANSPORT\":\"http\",\"PORT\":\"8000\",\"NO_COLOR\":\"1\",\"TOOL_MODE\":\"gateway\",\"LARKSUITE_CLI_BRAND\":\"feishu\",\"LARKSUITE_CLI_APP_ID\":\"${LARK_APP_ID}\",\"LARKSUITE_CLI_APP_SECRET\":\"${LARK_APP_SECRET}\"}" \
     --region "$REGION" --output text --query 'agentRuntimeId')
   echo "  创建中: $RUNTIME_ID"
 
