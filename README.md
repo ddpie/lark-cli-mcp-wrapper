@@ -1,10 +1,10 @@
 # lark-cli-mcp-wrapper
 
-将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 或 [AWS Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agentcore.html) 等 AI 助手直接操作飞书/Lark。
+将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等 AI 助手直接操作飞书/Lark。
 
-支持两种部署模式：
-- **本地 stdio** — 个人使用，Quick Desktop 直连
-- **HTTP (AgentCore)** — 多用户，容器化部署，per-user OAuth
+支持两种连接方式：
+- **Remote MCP（AgentCore）** — 多用户，每人独立飞书身份，容器化部署
+- **Local MCP** — 个人使用，本地直连
 
 ## 功能
 
@@ -17,43 +17,17 @@
 
 ---
 
-## 方式一：本地使用（Quick Desktop）
+## 方式一：Remote MCP（AgentCore 部署）
 
-### 前置条件
-
-- [Node.js](https://nodejs.org/) >= 18、[Git](https://git-scm.com/downloads)
-- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（详见 [lark-cli README](https://github.com/larksuite/cli#readme)）
-
-### Quick Desktop 配置
-
-Settings → Capabilities → MCP → **+ Add MCP**：
-
-| 字段 | 值 |
-|---|---|
-| Connection type | Local |
-| Name | Lark CLI MCP Wrapper |
-| Command | `npx` |
-| Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
-| Timeout | `300` |
-
-> 首次运行 npx 会从 GitHub 拉取并构建，耗时约 1-2 分钟。后续运行使用缓存，启动更快。
-
-<img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
-
-连接成功后显示为 **Connected**：
-
-![MCP 连接成功](images/mcp-connected.png)
-
----
-
-## 方式二：AgentCore 部署（多用户）
+适用于团队/企业场景，多用户各自飞书身份。
 
 ### 架构
 
 ```mermaid
 graph LR
-    U1[用户 A] --> GW[AgentCore Gateway<br/>Cognito/IAM 认证]
-    U2[用户 B] --> GW
+    U1[用户 A] --> QD[Quick Desktop]
+    U2[用户 B] --> QD
+    QD --> GW[AgentCore Gateway<br/>Cognito/IAM 认证]
     GW -->|WorkloadAccessToken| C[MCP Container :8000]
     C --> TV[AgentCore Token Vault<br/>per-user OAuth token]
     TV -->|user_access_token| C
@@ -83,16 +57,57 @@ bash deploy.sh
 
 详见 [deploy/](deploy/) 和 [infra/](infra/)（CDK 基础设施）。
 
+### Quick Desktop 配置（Remote）
+
+Settings → Capabilities → MCP → **+ Add MCP**：
+
+| 字段 | 值 |
+|---|---|
+| Connection type | Remote |
+| Name | Lark CLI MCP Wrapper |
+| URL | AgentCore 部署后提供的 endpoint |
+
 ### 容器运行时环境变量
 
 | 变量 | 说明 |
 |---|---|
-| `MCP_TRANSPORT` | `stdio`（默认）或 `http` |
+| `MCP_TRANSPORT` | `http` |
 | `PORT` | HTTP 端口，默认 8000 |
 | `LARKSUITE_CLI_APP_ID` | 飞书应用 App ID（容器内 lark-cli 使用） |
 | `LARKSUITE_CLI_APP_SECRET` | 飞书应用 App Secret（容器内 lark-cli 使用） |
 | `OAUTH_PROVIDER_NAME` | AgentCore OAuth provider 名称，默认 `feishu-oauth-provider` |
-| `BIND_ADDRESS` | 绑定地址，默认 `0.0.0.0`（本地开发建议 `127.0.0.1`） |
+| `BIND_ADDRESS` | 绑定地址，默认 `0.0.0.0` |
+
+---
+
+## 方式二：Local MCP（个人使用）
+
+适用于个人开发者，本地运行，无需服务器。
+
+### 前置条件
+
+- [Node.js](https://nodejs.org/) >= 18、[Git](https://git-scm.com/downloads)
+- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（详见 [lark-cli README](https://github.com/larksuite/cli#readme)）
+
+### Quick Desktop 配置（Local）
+
+Settings → Capabilities → MCP → **+ Add MCP**：
+
+| 字段 | 值 |
+|---|---|
+| Connection type | Local |
+| Name | Lark CLI MCP Wrapper |
+| Command | `npx` |
+| Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
+| Timeout | `300` |
+
+> 首次运行 npx 会从 GitHub 拉取并构建，耗时约 1-2 分钟。后续运行使用缓存，启动更快。
+
+<img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
+
+连接成功后显示为 **Connected**：
+
+![MCP 连接成功](images/mcp-connected.png)
 
 ---
 
