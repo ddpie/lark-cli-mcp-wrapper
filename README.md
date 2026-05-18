@@ -52,6 +52,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Name | Lark CLI |
 | Command | `npx` |
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
+| Timeout | `300` |
 
 > 如果是从源码构建，Command 填 `node`，Arguments 填 `/path/to/lark-cli-mcp-wrapper/dist/index.js`。
 
