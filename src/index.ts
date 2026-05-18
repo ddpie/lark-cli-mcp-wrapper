@@ -1,39 +1,34 @@
 #!/usr/bin/env node
 
-import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
-import {
-  CallToolRequestSchema,
-  ListToolsRequestSchema,
-} from "@modelcontextprotocol/sdk/types.js";
-import { buildToolList, executeTool } from "./tools.js";
+import { CallToolRequestSchema } from "@modelcontextprotocol/sdk/types.js";
+import { executeTool } from "./tools.js";
+import { createMcpServer } from "./server.js";
 
-const server = new Server(
-  { name: "lark-cli-mcp-wrapper", version: "0.9.0" },
-  { capabilities: { tools: {} } }
-);
+async function startStdio() {
+  const { server, tools } = createMcpServer();
 
-const tools = buildToolList();
+  server.setRequestHandler(CallToolRequestSchema, async (request) => {
+    const { name, arguments: args } = request.params;
+    const tool = tools.find((t) => t.schema.name === name);
+    if (!tool) {
+      return { content: [{ type: "text", text: `Unknown tool: ${name}` }], isError: true };
+    }
+    return executeTool(tool, args ?? {});
+  });
 
-server.setRequestHandler(ListToolsRequestSchema, async () => ({
-  tools: tools.map((t) => t.schema),
-}));
-
-server.setRequestHandler(CallToolRequestSchema, async (request) => {
-  const { name, arguments: args } = request.params;
-  const tool = tools.find((t) => t.schema.name === name);
-  if (!tool) {
-    return {
-      content: [{ type: "text", text: `Unknown tool: ${name}` }],
-      isError: true,
-    };
-  }
-  return executeTool(tool, args ?? {});
-});
-
-async function main() {
   const transport = new StdioServerTransport();
   await server.connect(transport);
+}
+
+async function main() {
+  const mode = process.env.MCP_TRANSPORT ?? "stdio";
+  if (mode === "http") {
+    const { startHttp } = await import("./http.js");
+    await startHttp();
+  } else {
+    await startStdio();
+  }
 }
 
 main().catch((err) => {
