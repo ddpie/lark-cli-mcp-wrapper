@@ -4,11 +4,8 @@
 
 ## 前置条件
 
-- Node.js >= 18
-- Git
-  - macOS: `brew install git`
-  - Ubuntu/Debian: `sudo apt install git`
-  - Windows: 从 https://git-scm.com/downloads 下载安装
+- [Node.js](https://nodejs.org/) >= 18
+- [Git](https://git-scm.com/downloads)
 - [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
 
 ## 使用
