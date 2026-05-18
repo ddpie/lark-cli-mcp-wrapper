@@ -1,46 +1,20 @@
 # lark-cli-mcp-wrapper
 
-把 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令包装为标准 stdio MCP server。
+将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) stdio server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等支持 MCP 的 AI 助手直接操作飞书/Lark：发消息、管理日历、读写多维表格、操作云文档等。
 
 ## 前置条件
 
 - Node.js >= 18
+- Git
 - [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`
-
-## 安装
-
-```bash
-npm install -g github:ddpie/lark-cli-mcp-wrapper
-```
-
-或不全局安装，直接用 npx 启动：
-
-```bash
-npx github:ddpie/lark-cli-mcp-wrapper
-```
-
-### 从源码构建
-
-```bash
-git clone https://github.com/ddpie/lark-cli-mcp-wrapper.git
-cd lark-cli-mcp-wrapper
-npm install
-npm run generate-tools
-npm run build
-```
 
 ## 使用
 
 ```bash
-# 全局安装后
-lark-cli-mcp-wrapper
-
-# 或 npx
 npx github:ddpie/lark-cli-mcp-wrapper
-
-# 或源码构建后
-node dist/index.js
 ```
+
+首次运行会自动从 GitHub 拉取并构建，无需手动 clone。
 
 ### Amazon Quick Desktop 配置
 
@@ -54,17 +28,26 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
 | Timeout | `300` |
 
-> 如果是从源码构建，Command 填 `node`，Arguments 填 `/path/to/lark-cli-mcp-wrapper/dist/index.js`。
+## 从源码构建（可选）
 
-## 更新工具列表（仅源码构建）
+如需自定义工具列表或本地开发：
 
-`lark-cli` 升级后重新生成即可，无需改代码：
+```bash
+git clone https://github.com/ddpie/lark-cli-mcp-wrapper.git
+cd lark-cli-mcp-wrapper
+npm install
+npm run generate-tools
+npm run build
+node dist/index.js
+```
+
+### 更新工具列表
+
+`lark-cli` 升级后重新生成即可：
 
 ```bash
 npm run generate-tools && npm run build
 ```
-
-> npx 方式使用的是仓库内置的工具列表，无需手动更新。
 
 ## License
 
