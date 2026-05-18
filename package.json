@@ -11,7 +11,7 @@
     "dist"
   ],
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('fs').copyFileSync('src/generated-tools.json','dist/generated-tools.json')\"",
     "dev": "tsx src/index.ts",
     "generate-tools": "tsx scripts/generate-tools.ts",
     "prepare": "npm run build"
