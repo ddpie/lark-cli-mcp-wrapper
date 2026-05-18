@@ -3,7 +3,7 @@ import { ListToolsRequestSchema } from "@modelcontextprotocol/sdk/types.js";
 import { buildToolList } from "./tools.js";
 import type { McpTool } from "./types.js";
 
-export const VERSION = "0.9.0";
+export const VERSION = "1.0.0";
 
 export function createMcpServer(tools?: McpTool[]): { server: Server; tools: McpTool[] } {
   const server = new Server(
