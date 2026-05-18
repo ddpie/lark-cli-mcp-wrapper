@@ -92,13 +92,13 @@ export function buildToolList(): McpTool[] {
 
 export async function executeTool(
   tool: McpTool,
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  userToken?: string
 ): Promise<ToolResult> {
   const { def } = tool;
 
-  // Raw API tool has a different invocation pattern
   if (def.command === "__raw__") {
-    return executeRawApi(args);
+    return executeRawApi(args, userToken);
   }
 
   const cliArgs = [def.service, def.command, "--format", "json"];
@@ -118,11 +118,16 @@ export async function executeTool(
     cliArgs.push("--yes");
   }
 
+  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
+  if (userToken) {
+    env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
+  }
+
   try {
     const result = await execa("lark-cli", cliArgs, {
       timeout: 120000,
       maxBuffer: 10 * 1024 * 1024,
-      env: { ...process.env, NO_COLOR: "1" },
+      env,
     });
 
     const output = result.stdout.trim();
@@ -157,7 +162,8 @@ export async function executeTool(
 }
 
 async function executeRawApi(
-  args: Record<string, unknown>
+  args: Record<string, unknown>,
+  userToken?: string
 ): Promise<ToolResult> {
   const method = String(args.method ?? "GET");
   const path = String(args.path ?? "");
@@ -167,11 +173,16 @@ async function executeRawApi(
   if (args.data) cliArgs.push("--data", String(args.data));
   if (args.page_all) cliArgs.push("--page-all");
 
+  const env: NodeJS.ProcessEnv = { ...process.env, NO_COLOR: "1" };
+  if (userToken) {
+    env.LARKSUITE_CLI_USER_ACCESS_TOKEN = userToken;
+  }
+
   try {
     const result = await execa("lark-cli", cliArgs, {
       timeout: 120000,
       maxBuffer: 10 * 1024 * 1024,
-      env: { ...process.env, NO_COLOR: "1" },
+      env,
     });
 
     const output = result.stdout.trim();
