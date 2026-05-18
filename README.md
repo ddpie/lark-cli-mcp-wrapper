@@ -5,8 +5,24 @@
 ## 前置条件
 
 - [Node.js](https://nodejs.org/) >= 18
+  ```bash
+  # macOS
+  brew install node
+  # 或使用 nvm
+  nvm install 18
+  ```
 - [Git](https://git-scm.com/downloads)
-- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
+  ```bash
+  # macOS
+  brew install git
+  # Ubuntu/Debian
+  sudo apt install git
+  ```
+- [`lark-cli`](https://github.com/larksuite/cli)（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
+  ```bash
+  npm install -g @larksuite/cli
+  lark-cli auth login
+  ```
 
 ## 使用
 
