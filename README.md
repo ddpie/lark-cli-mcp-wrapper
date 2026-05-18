@@ -6,7 +6,7 @@
 
 - Node.js >= 18
 - Git
-- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`
+- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（配置文档见 [lark-cli README](https://github.com/larksuite/cli#readme)）
 
 ## 使用
 
