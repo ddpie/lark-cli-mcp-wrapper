@@ -3,8 +3,8 @@
 将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等 AI 助手直接操作飞书/Lark。
 
 支持两种连接方式：
-- **Remote MCP（AgentCore）** — 多用户，每人独立飞书身份，容器化部署
-- **Local MCP** — 个人使用，本地直连
+- **Remote MCP（AgentCore）** — 集中部署，用户无需本地安装
+- **Local MCP** — 每台机器单独运行，无需服务器
 
 ## 功能
 
@@ -19,7 +19,7 @@
 
 ## 方式一：Remote MCP（AgentCore 部署）
 
-适用于团队/企业场景，多用户各自飞书身份。
+集中部署到云端，用户无需安装 Node.js 或 lark-cli，通过 Quick Desktop Remote MCP 连接即可使用。
 
 ### 架构
 
@@ -82,7 +82,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 ## 方式二：Local MCP（个人使用）
 
-适用于个人开发者，本地运行，无需服务器。
+每台机器本地运行，无需云服务器，通过 Quick Desktop Local MCP 连接。
 
 ### 前置条件
 
