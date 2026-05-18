@@ -1,60 +1,30 @@
 # lark-cli-mcp-wrapper
 
-将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) stdio server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等支持 MCP 的 AI 助手直接操作飞书/Lark。
+将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 或 [AWS Bedrock AgentCore](https://docs.aws.amazon.com/bedrock/latest/userguide/agentcore.html) 等 AI 助手直接操作飞书/Lark。
 
-配置完成后，你可以用自然语言让 AI 助手：
+支持两种部署模式：
+- **本地 stdio** — 个人使用，Quick Desktop 直连
+- **HTTP (AgentCore)** — 多用户，容器化部署，per-user OAuth
+
+## 功能
 
 - 发送飞书消息、管理群聊
 - 创建和查询日程、预订会议室
 - 读写多维表格（Base）记录
 - 操作云文档、知识库
 - 管理审批、任务、邮件等
+- 调用任意飞书 OpenAPI（2500+）
 
-## 前置条件
+---
 
-- [Node.js](https://nodejs.org/) >= 18
-- [Git](https://git-scm.com/downloads)
-- [`lark-cli`](https://github.com/larksuite/cli)
+## 方式一：本地使用（Quick Desktop）
 
-### macOS
+### 前置条件
 
-```bash
-brew install node git
-```
+- [Node.js](https://nodejs.org/) >= 18、[Git](https://git-scm.com/downloads)
+- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（详见 [lark-cli README](https://github.com/larksuite/cli#readme)）
 
-### Ubuntu/Debian
-
-> 注意：`apt` 默认源的 Node.js 版本可能低于 18，推荐使用 [nvm](https://github.com/nvm-sh/nvm) 安装。
-
-```bash
-# 方式一：nvm（推荐）
-nvm install 18
-```
-
-```bash
-# 方式二：apt（需确认版本 >= 18）
-sudo apt install nodejs npm git
-```
-
-### Windows
-
-从以下地址下载安装包：[Node.js](https://nodejs.org/)、[Git](https://git-scm.com/downloads)
-
-### 安装并配置 lark-cli（所有平台）
-
-```bash
-npm install -g @larksuite/cli
-```
-
-```bash
-lark-cli auth login
-```
-
-> 执行 `auth login` 后会打开浏览器进行 OAuth 授权，需要飞书管理员预先创建好应用并配置权限。详见 [lark-cli README](https://github.com/larksuite/cli#readme)。
-
-## 使用
-
-### Amazon Quick Desktop 配置
+### Quick Desktop 配置
 
 Settings → Capabilities → MCP → **+ Add MCP**：
 
@@ -66,27 +36,63 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
 | Timeout | `300` |
 
-> `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。Timeout 单位为秒，设为 300 是因为部分飞书 API 调用涉及网络请求，默认超时可能不够。
-
 <img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
 
-### 验证
-
-连接成功后，可以在 Capabilities → MCP 中看到 Lark CLI MCP Wrapper 显示为 **Connected**，并列出所有可用工具：
+连接成功后显示为 **Connected**：
 
 ![MCP 连接成功](images/mcp-connected.png)
 
-在 Quick Desktop 对话中输入类似以下内容测试：
+---
 
+## 方式二：AgentCore 部署（多用户）
+
+### 架构
+
+```mermaid
+graph LR
+    U1[用户 A] --> GW[AgentCore Gateway<br/>Cognito/IAM 认证]
+    U2[用户 B] --> GW
+    GW -->|WorkloadAccessToken| C[MCP Container :8000]
+    C --> TV[AgentCore Token Vault<br/>per-user OAuth token]
+    TV -->|user_access_token| C
+    C -->|LARKSUITE_CLI_USER_ACCESS_TOKEN| CLI[lark-cli]
+    CLI --> API[飞书 OpenAPI]
 ```
-帮我查一下今天的日程
+
+**流程说明：**
+1. 飞书管理员创建一个应用（App ID + Secret），所有用户共享
+2. 每个用户首次使用时通过 OAuth 弹窗授权自己的飞书账号
+3. Token Vault 自动缓存和刷新 per-user token
+4. 每次工具调用以该用户的飞书身份执行
+
+### 部署
+
+```bash
+cd deploy
+bash deploy.sh
 ```
 
-如果 MCP 连接正常，AI 会调用 lark-cli 获取你的日历信息。
+脚本会交互式提示输入飞书 App ID / Secret（也可通过环境变量预设），然后自动：
+- 构建 Docker 镜像并推送到 ECR
+- 创建 Secrets Manager 密钥
+- 注册飞书 OAuth Provider
 
-## 从源码构建（可选）
+详见 [deploy/](deploy/) 和 [infra/](infra/)（CDK 基础设施）。
 
-如需自定义工具列表或本地开发：
+### 环境变量
+
+| 变量 | 说明 |
+|---|---|
+| `MCP_TRANSPORT` | `stdio`（默认）或 `http` |
+| `PORT` | HTTP 端口，默认 8000 |
+| `LARKSUITE_CLI_APP_ID` | 飞书应用 App ID |
+| `LARKSUITE_CLI_APP_SECRET` | 飞书应用 App Secret |
+| `OAUTH_PROVIDER_NAME` | AgentCore OAuth provider 名称 |
+| `BIND_ADDRESS` | 绑定地址，默认 `0.0.0.0` |
+
+---
+
+## 从源码构建
 
 ```bash
 git clone https://github.com/ddpie/lark-cli-mcp-wrapper.git
@@ -96,19 +102,16 @@ npm run generate-tools
 npm run build
 ```
 
-源码构建后，Quick Desktop 配置改为：
-
-| 字段 | 值 |
-|---|---|
-| Command | `node` |
-| Arguments | `/path/to/lark-cli-mcp-wrapper/dist/index.js` |
-
 ### 更新工具列表
-
-`lark-cli` 升级后重新生成即可：
 
 ```bash
 npm run generate-tools && npm run build
+```
+
+### 运行测试
+
+```bash
+npm test
 ```
 
 ## License
