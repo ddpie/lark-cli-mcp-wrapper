@@ -1,34 +1,10 @@
 import { readFileSync } from "node:fs";
 import { execa } from "execa";
+import type { ToolDef, McpTool, ToolResult } from "./types.js";
 
 const toolDefs = JSON.parse(
   readFileSync(new URL("./generated-tools.json", import.meta.url), "utf-8")
 );
-
-interface ToolFlag {
-  name: string;
-  type: "string" | "boolean" | "number";
-  description: string;
-  required: boolean;
-  enum?: string[];
-}
-
-interface ToolDef {
-  service: string;
-  command: string;
-  description: string;
-  risk: string;
-  flags: ToolFlag[];
-}
-
-interface McpTool {
-  schema: {
-    name: string;
-    description: string;
-    inputSchema: Record<string, unknown>;
-  };
-  def: ToolDef;
-}
 
 function toolName(def: ToolDef): string {
   const cmd = def.command.replace(/^\+/, "");
@@ -117,7 +93,7 @@ export function buildToolList(): McpTool[] {
 export async function executeTool(
   tool: McpTool,
   args: Record<string, unknown>
-): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
+): Promise<ToolResult> {
   const { def } = tool;
 
   // Raw API tool has a different invocation pattern
@@ -182,7 +158,7 @@ export async function executeTool(
 
 async function executeRawApi(
   args: Record<string, unknown>
-): Promise<{ content: Array<{ type: string; text: string }>; isError?: boolean }> {
+): Promise<ToolResult> {
   const method = String(args.method ?? "GET");
   const path = String(args.path ?? "");
   const cliArgs = ["api", method, path, "--format", "json"];
