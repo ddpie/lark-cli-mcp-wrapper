@@ -161,7 +161,8 @@ else
     --agent-runtime-artifact "{\"containerConfiguration\":{\"containerUri\":\"${ECR_URI}:${IMAGE_TAG}\"}}" \
     --network-configuration '{"networkMode":"PUBLIC"}' \
     --role-arn "$RUNTIME_ROLE_ARN" \
-    --environment-variables "{\"MCP_TRANSPORT\":\"http\",\"PORT\":\"8080\",\"NO_COLOR\":\"1\",\"LARKSUITE_CLI_BRAND\":\"feishu\",\"LARKSUITE_CLI_APP_ID\":\"${LARK_APP_ID}\",\"LARKSUITE_CLI_APP_SECRET\":\"${LARK_APP_SECRET}\"}" \
+    --protocol-configuration '{"serverProtocol":"MCP"}' \
+    --environment-variables "{\"MCP_TRANSPORT\":\"http\",\"PORT\":\"8000\",\"NO_COLOR\":\"1\",\"LARKSUITE_CLI_BRAND\":\"feishu\",\"LARKSUITE_CLI_APP_ID\":\"${LARK_APP_ID}\",\"LARKSUITE_CLI_APP_SECRET\":\"${LARK_APP_SECRET}\"}" \
     --region "$REGION" --output text --query 'agentRuntimeId')
   echo "  创建中: $RUNTIME_ID"
 
@@ -205,6 +206,36 @@ GATEWAY_URL=""
 if [ -n "$GATEWAY_ID" ]; then
   GATEWAY_URL=$(aws bedrock-agentcore-control get-gateway --gateway-id "$GATEWAY_ID" --region "$REGION" --output text --query 'gatewayUrl' 2>/dev/null || echo "")
   echo "  ✓ Gateway: $GATEWAY_ID"
+
+  # Create Gateway Target linking to Runtime
+  RUNTIME_ARN="arn:aws:bedrock-agentcore:${REGION}:${ACCOUNT_ID}:runtime/${RUNTIME_ID}"
+  ENCODED_ARN=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${RUNTIME_ARN}', safe=''))")
+  TARGET_ENDPOINT="https://bedrock-agentcore.${REGION}.amazonaws.com/runtimes/${ENCODED_ARN}/invocations?qualifier=DEFAULT"
+
+  EXISTING_TARGET=$(aws bedrock-agentcore-control list-gateway-targets --gateway-identifier "$GATEWAY_ID" --region "$REGION" 2>/dev/null | \
+    jq -r '.items[]? | select(.status=="READY" or .status=="CREATING") | .targetId' 2>/dev/null | head -1 || echo "")
+
+  if [ -z "$EXISTING_TARGET" ]; then
+    TARGET_ID=$(aws bedrock-agentcore-control create-gateway-target \
+      --gateway-identifier "$GATEWAY_ID" \
+      --name lark-mcp-runtime \
+      --target-configuration "{\"mcp\":{\"mcpServer\":{\"endpoint\":\"${TARGET_ENDPOINT}\"}}}" \
+      --credential-provider-configurations '[{"credentialProviderType":"GATEWAY_IAM_ROLE","credentialProvider":{"iamCredentialProvider":{"service":"bedrock-agentcore"}}}]' \
+      --region "$REGION" --output text --query 'targetId' 2>/dev/null || echo "")
+
+    if [ -n "$TARGET_ID" ]; then
+      echo "  ✓ Target: $TARGET_ID (创建中，等待验证...)"
+      for i in $(seq 1 12); do
+        TSTATUS=$(aws bedrock-agentcore-control get-gateway-target --gateway-identifier "$GATEWAY_ID" --target-id "$TARGET_ID" --region "$REGION" --output text --query 'status' 2>/dev/null)
+        if [ "$TSTATUS" = "READY" ]; then echo "  ✓ Target READY"; break; fi
+        if [ "$TSTATUS" = "FAILED" ]; then echo "  ⚠ Target 验证失败"; break; fi
+        sleep 10
+      done
+    fi
+  else
+    echo "  ✓ Target 已存在: $EXISTING_TARGET"
+  fi
+
   echo "  ✓ URL: $GATEWAY_URL"
 fi
 

@@ -28,15 +28,14 @@ describe("HTTP transport", () => {
     delete process.env.BIND_ADDRESS;
   });
 
-  it("/ping returns 200 with server info", async () => {
+  it("/ping returns 200", async () => {
     const res = await fetch("http://127.0.0.1:18765/ping");
     expect(res.status).toBe(200);
     const body = (await res.json()) as any;
     expect(body.status).toBe("ok");
-    expect(body.name).toBe("lark-cli-mcp-wrapper");
   });
 
-  it("/health also returns 200", async () => {
+  it("/health returns 200", async () => {
     const res = await fetch("http://127.0.0.1:18765/health");
     expect(res.status).toBe(200);
   });
@@ -46,8 +45,8 @@ describe("HTTP transport", () => {
     expect(res.status).toBe(404);
   });
 
-  it("POST /invocations accepts MCP requests", async () => {
-    const res = await fetch("http://127.0.0.1:18765/invocations", {
+  it("POST /mcp with MCP initialize returns SSE response", async () => {
+    const res = await fetch("http://127.0.0.1:18765/mcp", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -64,7 +63,8 @@ describe("HTTP transport", () => {
         },
       }),
     });
-    // Should get a valid MCP response (not 401 or 404)
     expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain("lark-cli-mcp-wrapper");
   });
 });
