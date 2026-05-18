@@ -42,7 +42,7 @@ npx github:ddpie/lark-cli-mcp-wrapper
 node dist/index.js
 ```
 
-### Claude Desktop 配置
+### Amazon Quick Desktop 配置
 
 Settings → Capabilities → MCP → **+ Add MCP**：
 
