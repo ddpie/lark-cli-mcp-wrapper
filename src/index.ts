@@ -9,7 +9,7 @@ import {
 import { buildToolList, executeTool } from "./tools.js";
 
 const server = new Server(
-  { name: "lark-cli-mcp-wrapper", version: "0.1.0" },
+  { name: "lark-cli-mcp-wrapper", version: "0.9.0" },
   { capabilities: { tools: {} } }
 );
 
