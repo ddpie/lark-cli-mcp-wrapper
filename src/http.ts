@@ -84,6 +84,11 @@ export async function startHttp(): Promise<HttpServer> {
 
     if (sessionId && sessions.has(sessionId)) {
       const session = sessions.get(sessionId)!;
+      if (session.workloadToken !== workloadToken) {
+        res.writeHead(403, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Session token mismatch" }));
+        return;
+      }
       session.lastActivity = Date.now();
       await session.transport.handleRequest(req, res);
       return;
