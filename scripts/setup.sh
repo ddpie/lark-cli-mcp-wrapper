@@ -101,7 +101,7 @@ fi
 
 if command -v lark-cli &>/dev/null; then
   info "检查 lark-cli 应用配置..."
-  AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+  AUTH_OUTPUT=$(NO_COLOR=1 lark-cli auth status 2>&1)
   HAS_APP_ID=$(echo "$AUTH_OUTPUT" | grep -o '"appId"' || true)
 
   if [ -z "$HAS_APP_ID" ]; then
@@ -114,7 +114,7 @@ if command -v lark-cli &>/dev/null; then
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       lark-cli config init
-      if lark-cli auth status 2>&1 | grep -q '"appId"'; then
+      if NO_COLOR=1 lark-cli auth status 2>&1 | grep -q '"appId"'; then
         success "应用配置完成"
       else
         ISSUES+=("应用配置未完成，请手动运行：lark-cli config init")
@@ -131,7 +131,7 @@ fi
 
 if command -v lark-cli &>/dev/null; then
   info "检查 lark-cli 登录状态..."
-  AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+  AUTH_OUTPUT=$(NO_COLOR=1 lark-cli auth status 2>&1)
   HAS_USER=$(echo "$AUTH_OUTPUT" | grep -o '"identity": *"user"' || true)
 
   if [ -n "$HAS_USER" ]; then
@@ -145,7 +145,7 @@ if command -v lark-cli &>/dev/null; then
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       lark-cli auth login
-      AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+      AUTH_OUTPUT=$(NO_COLOR=1 lark-cli auth status 2>&1)
       if echo "$AUTH_OUTPUT" | grep -q '"identity": *"user"'; then
         success "lark-cli 登录成功"
       else
