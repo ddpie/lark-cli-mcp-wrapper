@@ -10,7 +10,7 @@ import { buildTierOneTools, executeTool } from "./tools.js";
 import { getMetaToolSchemas, handleMetaTool } from "./meta-tools.js";
 
 const server = new Server(
-  { name: "lark-cli-mcp-wrapper", version: "1.1.0" },
+  { name: "lark-cli-mcp-wrapper", version: "1.2.0" },
   { capabilities: { tools: {} } }
 );
 
