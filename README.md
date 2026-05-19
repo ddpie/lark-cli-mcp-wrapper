@@ -1,101 +1,73 @@
 # lark-cli-mcp-wrapper
 
-将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等 AI 助手直接操作飞书/Lark。
+将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) stdio server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等支持 MCP 的 AI 助手直接操作飞书/Lark。
 
-支持两种连接方式：
-- **Remote MCP（AgentCore）** — 集中部署，用户无需本地安装，28 个精选工具 + raw API 兜底
-- **Local MCP** — 每台机器单独运行，232 个全量工具
+28 个高频工具直接注册，其余通过 `lark_discover` + `lark_invoke` 按需调用，共 30 个 MCP tools。安装时自动扫描本地 lark-cli 生成工具定义，确保版本完全匹配。
 
-## 功能
+配置完成后，你可以用自然语言让 AI 助手：
 
 - 发送飞书消息、管理群聊
 - 创建和查询日程、预订会议室
 - 读写多维表格（Base）记录
 - 操作云文档、知识库
-- 管理任务
-- 调用任意飞书 OpenAPI（2500+，通过 `lark_raw_api`）
+- 管理审批、任务、邮件等
+- 通过 discover/invoke 调用全部 200+ 个 lark-cli 命令
 
----
+## 快速安装（仅 macOS）
 
-## 方式一：Remote MCP（AgentCore 部署）
-
-集中部署到云端，用户无需安装 Node.js 或 lark-cli，通过 Quick Desktop Remote MCP 连接即可使用。
-
-### 架构
-
-```mermaid
-graph LR
-    U1[用户 A] --> QD[Quick Desktop]
-    U2[用户 B] --> QD
-    QD -->|HTTPS| GW[AgentCore Gateway]
-    GW --> RT[AgentCore Runtime<br/>MCP Container :8000]
-    RT --> CLI[lark-cli]
-    CLI --> API[飞书 OpenAPI]
-```
-
-### 部署
+一键检查并安装所有依赖，引导完成配置：
 
 ```bash
-bash deploy/deploy.sh
+bash <(curl -fsSL https://raw.githubusercontent.com/ddpie/lark-cli-mcp-wrapper/master/scripts/setup.sh)
 ```
 
-脚本会交互式提示输入飞书 App ID / Secret（也可通过环境变量预设），然后自动完成：
-- ECR 镜像构建推送
-- Secrets Manager 密钥
-- IAM 角色
-- AgentCore Runtime（protocolConfiguration=MCP）
-- AgentCore Gateway + Target
-
-部署完成后输出 Gateway URL。
-
-### Quick Desktop 配置（Remote）
-
-Settings → Capabilities → MCP → **+ Add MCP**：
-
-| 字段 | 值 |
-|---|---|
-| Connection type | Remote |
-| Name | Lark CLI MCP Wrapper |
-| URL | `deploy.sh` 输出的 Gateway URL |
-
-### 工具说明
-
-Remote 模式暴露 28 个精选工具（Gateway 限制 30 个/页）：
-
-| 类别 | 工具 |
-|---|---|
-| IM | 发消息、搜索消息、群列表、聊天记录、搜索群 |
-| Calendar | 日程概览、创建日程、查忙闲、找会议室 |
-| Docs | 创建、获取、搜索、编辑文档 |
-| Base | 获取表、查询数据、批量创建记录、搜索记录 |
-| Drive | 搜索、上传、下载文件 |
-| Task | 创建任务、我的任务、完成任务 |
-| Contact | 搜索用户、获取用户信息 |
-| Sheets | 读取、写入单元格 |
-| **Raw API** | **调用任意飞书 OpenAPI（2500+），覆盖所有未列出的功能** |
-
-### 环境变量
-
-| 变量 | 说明 |
-|---|---|
-| `MCP_TRANSPORT` | `http` |
-| `PORT` | 默认 8000 |
-| `TOOL_MODE` | `gateway`（精选 28 工具）或不设（全量 232） |
-| `LARKSUITE_CLI_APP_ID` | 飞书应用 App ID |
-| `LARKSUITE_CLI_APP_SECRET` | 飞书应用 App Secret |
-
----
-
-## 方式二：Local MCP
-
-每台机器本地运行，无需云服务器，通过 Quick Desktop Local MCP 连接。暴露全部 232 个工具。
+## 手动安装
 
 ### 前置条件
 
-- [Node.js](https://nodejs.org/) >= 18、[Git](https://git-scm.com/downloads)
-- [`lark-cli`](https://github.com/larksuite/cli) 已安装并完成 `auth login`（详见 [lark-cli README](https://github.com/larksuite/cli#readme)）
+- [Node.js](https://nodejs.org/) >= 18
+- [Git](https://git-scm.com/downloads)
+- [`lark-cli`](https://github.com/larksuite/cli)
 
-### Quick Desktop 配置（Local）
+### macOS
+
+```bash
+brew install node git
+```
+
+### Ubuntu/Debian
+
+> 注意：`apt` 默认源的 Node.js 版本可能低于 18，推荐使用 [nvm](https://github.com/nvm-sh/nvm) 安装。
+
+```bash
+# 方式一：nvm（推荐）
+nvm install 18
+```
+
+```bash
+# 方式二：apt（需确认版本 >= 18）
+sudo apt install nodejs npm git
+```
+
+### Windows
+
+从以下地址下载安装包：[Node.js](https://nodejs.org/)、[Git](https://git-scm.com/downloads)
+
+### 安装并配置 lark-cli（所有平台）
+
+```bash
+npm install -g @larksuite/cli
+```
+
+```bash
+lark-cli auth login
+```
+
+> 执行 `auth login` 后会打开浏览器进行 OAuth 授权，需要飞书管理员预先创建好应用并配置权限。详见 [lark-cli README](https://github.com/larksuite/cli#readme)。
+
+## 使用
+
+### Amazon Quick Desktop 配置
 
 Settings → Capabilities → MCP → **+ Add MCP**：
 
@@ -107,36 +79,88 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
 | Timeout | `300` |
 
-> 首次运行 npx 会从 GitHub 拉取并构建，耗时约 1-2 分钟。后续使用缓存。
+> `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。首次启动需拉取和编译，Timeout 建议设为 300。
 
 <img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
 
-连接成功后显示为 **Connected**：
+### 验证
+
+连接成功后，可以在 Capabilities → MCP 中看到 Lark CLI MCP Wrapper 显示为 **Connected**，并列出 30 个可用工具：
 
 ![MCP 连接成功](images/mcp-connected.png)
 
----
+在 Quick Desktop 对话中输入类似以下内容测试：
 
-## 从源码构建
-
-```bash
-git clone https://github.com/ddpie/lark-cli-mcp-wrapper.git
-cd lark-cli-mcp-wrapper
-npm install
-npm run generate-tools
-npm run build
+```
+帮我查一下今天的日程
 ```
 
-### 更新工具列表
+如果 MCP 连接正常，AI 会调用 lark-cli 获取你的日历信息。
 
-```bash
-npm run generate-tools && npm run build
+## 工具列表
+
+### Tier 1 高频工具（28 个，直接注册）
+
+| 类别 | 工具 |
+|---|---|
+| IM (5) | 发消息、搜索消息、群列表、聊天记录、搜索群 |
+| Calendar (4) | 日程概览、创建日程、查忙闲、找会议室 |
+| Docs (4) | 创建、获取、搜索、编辑文档 |
+| Base (4) | 获取表、查询数据、批量创建记录、搜索记录 |
+| Drive (3) | 搜索、上传、下载文件 |
+| Task (3) | 创建任务、我的任务、完成任务 |
+| Contact (2) | 搜索用户、获取用户信息 |
+| Sheets (2) | 读取、写入单元格 |
+| Mail (1) | 发送邮件 |
+
+### Meta Tools（2 个）
+
+| 工具 | 说明 |
+|---|---|
+| `lark_discover` | 按关键词或分类搜索其余所有 lark-cli 命令，返回名称 + 完整参数 schema |
+| `lark_invoke` | 执行 discover 找到的工具（传入 tool_name + args） |
+
+高频操作直接调用即可；其余操作 AI 会自动通过 discover 搜索再 invoke 执行，无需额外配置。
+
+### 示例对话
+
+**高频操作（直接调用）：**
+
+```
+帮我查一下今天的日程
+```
+```
+发一条消息给产品研发群：明天下午3点对齐需求
+```
+```
+搜一下飞书里关于"季度规划"的文档
 ```
 
-### 运行测试
+**低频操作（自动 discover → invoke）：**
+
+```
+帮我创建一个群聊，名字叫"Q3项目组"，把李四和王五拉进来
+```
+```
+转发这封邮件给 alice@company.com
+```
+```
+帮我建一个知识库空间，叫"工程文档库"
+```
+```
+查一下昨天产品评审会的会议纪要
+```
+
+## 工具列表自动适配
+
+不同版本的 lark-cli 支持的 shortcut 命令不同。安装时自动扫描本地 lark-cli 的全部命令，生成与当前版本完全匹配的工具定义。
+
+如果遇到 `Usage: lark-cli xxx [command]` 错误，说明 lark-cli 已升级但工具定义是旧的。清除 npx 缓存重新安装即可：
 
 ```bash
-npm test
+lark-cli update
+rm -rf ~/.npm/_npx
+npx github:ddpie/lark-cli-mcp-wrapper
 ```
 
 ## License
