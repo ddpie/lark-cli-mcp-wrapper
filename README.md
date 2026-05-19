@@ -36,13 +36,12 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ddpie/lark-cli-mcp-wrapper/m
 ### 前置条件
 
 - [Node.js](https://nodejs.org/) >= 18
-- [Git](https://git-scm.com/downloads)
 - [`lark-cli`](https://github.com/larksuite/cli)
 
 ### macOS
 
 ```bash
-brew install node git
+brew install node
 ```
 
 ### Ubuntu/Debian

@@ -26,7 +26,7 @@ if command -v brew &>/dev/null; then
   HAS_BREW=true
 fi
 
-# ─── Step 1: Check Node.js ───────────────────────────────────────────────────
+# ─── Check Node.js ───────────────────────────────────────────────────────────
 
 info "检查 Node.js..."
 if command -v node &>/dev/null; then
@@ -65,28 +65,8 @@ else
   fi
 fi
 
-# ─── Step 2: Check Git ───────────────────────────────────────────────────────
 
-info "检查 Git..."
-if command -v git &>/dev/null; then
-  success "Git $(git --version | awk '{print $3}') 已安装"
-else
-  warn "未检测到 Git"
-  if [ "$HAS_BREW" = true ]; then
-    read -p "  是否通过 brew 安装? [Y/n] " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-      brew install git
-      success "Git 已安装"
-    else
-      ISSUES+=("需要安装 Git：brew install git")
-    fi
-  else
-    ISSUES+=("需要安装 Git：https://git-scm.com/downloads")
-  fi
-fi
-
-# ─── Step 3: Check lark-cli ──────────────────────────────────────────────────
+# ─── Check lark-cli ──────────────────────────────────────────────────────────
 
 info "检查 lark-cli..."
 if command -v lark-cli &>/dev/null; then
@@ -109,7 +89,7 @@ else
   fi
 fi
 
-# ─── Step 4: Check lark-cli auth ─────────────────────────────────────────────
+# ─── Check lark-cli auth ─────────────────────────────────────────────────────
 
 if command -v lark-cli &>/dev/null; then
   info "检查 lark-cli 登录状态..."
@@ -134,7 +114,7 @@ if command -v lark-cli &>/dev/null; then
   fi
 fi
 
-# ─── Step 5: Test MCP wrapper ────────────────────────────────────────────────
+# ─── Test MCP wrapper ────────────────────────────────────────────────────────
 
 if [ ${#ISSUES[@]} -eq 0 ] && command -v npx &>/dev/null; then
   info "测试 MCP wrapper 是否可用..."
