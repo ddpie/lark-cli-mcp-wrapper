@@ -38,26 +38,26 @@ export function search(query?: string, category?: string): SearchResult[] {
   }
 
   if (tokens.length === 0) {
-    return candidates.slice(0, 5).map(toResult);
+    return candidates.slice(0, 20).map(toResult);
   }
 
   const scored: { entry: CatalogEntry; score: number }[] = [];
   for (const entry of candidates) {
     let score = 0;
     for (const tok of tokens) {
-      if (entry.nameTokens.includes(tok) || entry.descTokens.includes(tok)) {
-        score++;
-      }
+      const nameHit = entry.nameTokens.some((nt) => nt.startsWith(tok) || tok.startsWith(nt));
+      const descHit = entry.descTokens.some((dt) => dt.startsWith(tok) || tok.startsWith(dt));
+      if (nameHit || descHit) score++;
     }
     if (score > 0) scored.push({ entry, score });
   }
 
   if (category && query && scored.length < 3) {
-    return candidates.slice(0, 5).map(toResult);
+    return candidates.slice(0, 20).map(toResult);
   }
 
   scored.sort((a, b) => b.score - a.score || a.entry.name.localeCompare(b.entry.name));
-  return scored.slice(0, 5).map((s) => toResult(s.entry));
+  return scored.slice(0, 20).map((s) => toResult(s.entry));
 }
 
 export function findByName(name: string): CatalogEntry | undefined {
