@@ -163,8 +163,9 @@ else
   echo ""
 fi
 
-echo "  下一步：在 Amazon Quick Desktop 中添加 MCP 配置"
+echo "  下一步：在 MCP 客户端中添加配置"
 echo ""
+echo "  方式一：Quick Desktop"
 echo "  Settings → Capabilities → MCP → + Add MCP"
 echo ""
 echo "    Connection type:  Local"
@@ -172,6 +173,17 @@ echo "    Name:             Lark CLI MCP Wrapper"
 echo "    Command:          npx"
 echo "    Arguments:        lark-cli-mcp-wrapper"
 echo "    Timeout:          300"
+echo ""
+echo "  方式二：JSON 配置（Claude Code / Cursor / Kiro 等）"
+echo ""
+echo '    {
+      "mcpServers": {
+        "lark": {
+          "command": "npx",
+          "args": ["lark-cli-mcp-wrapper"]
+        }
+      }
+    }'
 echo ""
 echo "  配置完成后，对话中输入「帮我查一下今天的日程」测试。"
 echo ""
