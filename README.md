@@ -86,7 +86,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Connection type | Local |
 | Name | Lark CLI MCP Wrapper |
 | Command | `npx` |
-| Arguments | `github:ddpie/lark-cli-mcp-wrapper` |
+| Arguments | `lark-cli-mcp-wrapper` |
 | Timeout | `300` |
 
 > `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。首次启动需拉取和编译，Timeout 建议设为 300。
@@ -190,7 +190,7 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 ```bash
 lark-cli update
 rm -rf ~/.npm/_npx
-npx github:ddpie/lark-cli-mcp-wrapper
+npx lark-cli-mcp-wrapper
 ```
 
 ## License

@@ -138,7 +138,7 @@ fi
 
 if [ ${#ISSUES[@]} -eq 0 ] && command -v npx &>/dev/null; then
   info "测试 MCP wrapper 是否可用..."
-  echo '' | npx --yes github:ddpie/lark-cli-mcp-wrapper &>/dev/null
+  echo '' | npx --yes lark-cli-mcp-wrapper &>/dev/null
   success "MCP wrapper 测试通过"
 fi
 
@@ -170,7 +170,7 @@ echo ""
 echo "    Connection type:  Local"
 echo "    Name:             Lark CLI MCP Wrapper"
 echo "    Command:          npx"
-echo "    Arguments:        github:ddpie/lark-cli-mcp-wrapper"
+echo "    Arguments:        lark-cli-mcp-wrapper"
 echo "    Timeout:          300"
 echo ""
 echo "  配置完成后，对话中输入「帮我查一下今天的日程」测试。"
