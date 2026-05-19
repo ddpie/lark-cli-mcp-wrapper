@@ -71,73 +71,90 @@ function discoverShortcuts(service: string): string[] {
   return shortcuts;
 }
 
-function parseShortcutHelp(service: string, shortcut: string): ToolDef | null {
-  const help = run("lark-cli", service, shortcut, "--help");
-  if (!help.trim()) return null;
 
-  const lines = help.split("\n");
-  const description = lines[0]?.trim() ?? "";
-
-  const flags: ToolFlag[] = [];
-  let inFlags = false;
-  for (const line of lines) {
-    if (line.startsWith("Flags:")) {
-      inFlags = true;
-      continue;
-    }
-    if (inFlags) {
-      if (line.trim() === "" || line.startsWith("Risk:")) break;
-      // Parse flag lines like:
-      //       --calendar-id string   calendar ID (default: primary)
-      //       --dry-run              print request without executing
-      //   -q, --jq string            jq expression to filter JSON output
-      const flagMatch = line.match(/(?:-\w,\s+)?--(\S+?)(?:\s+(string|int)\s+|\s+)(.*)/);
-      if (flagMatch) {
-        const [, name, typeHint, desc] = flagMatch;
-        // Skip framework flags that are always present or handled by the wrapper
-        if (["help", "dry-run", "format", "jq", "as", "yes"].includes(name)) continue;
-        const type = typeHint === "int" ? "number" : name === "dry-run" ? "boolean" : typeHint === "string" ? "string" : "boolean";
-        flags.push({
-          name,
-          type,
-          description: desc.trim(),
-          required: false,
-        });
-      }
-    }
-  }
-
-  // Extract risk level
-  const riskLine = lines.find((l) => l.startsWith("Risk:"));
-  const risk = riskLine?.replace("Risk:", "").trim() ?? "read";
-
-  return { service, command: shortcut, description, risk, flags };
+// Check lark-cli is available
+try {
+  execFileSync("lark-cli", ["--version"], { encoding: "utf-8", timeout: 5000, stdio: ["pipe", "pipe", "pipe"] });
+} catch {
+  console.error("Error: lark-cli not found. Install it first: npm install -g @larksuite/cli");
+  process.exit(1);
 }
 
 console.log("Discovering lark-cli shortcuts...");
 const services = discoverServices();
 console.log(`Found ${services.length} services: ${services.join(", ")}`);
 
-const tools: ToolDef[] = [];
-
+const allShortcuts: { service: string; shortcut: string }[] = [];
 for (const service of services) {
   const shortcuts = discoverShortcuts(service);
   console.log(`  ${service}: ${shortcuts.length} shortcuts`);
   for (const shortcut of shortcuts) {
-    const tool = parseShortcutHelp(service, shortcut);
-    if (tool) {
-      tools.push(tool);
+    allShortcuts.push({ service, shortcut });
+  }
+}
+
+// Parse all shortcuts in parallel (batches of 20)
+import { execFile } from "node:child_process";
+import { promisify } from "node:util";
+const execFileAsync = promisify(execFile);
+
+async function parseShortcutHelpAsync(service: string, shortcut: string): Promise<ToolDef | null> {
+  try {
+    const { stdout } = await execFileAsync("lark-cli", [service, shortcut, "--help"], { timeout: 10000 });
+    const help = stdout;
+    if (!help.trim()) return null;
+
+    const lines = help.split("\n");
+    const description = lines[0]?.trim() ?? "";
+
+    const flags: ToolFlag[] = [];
+    let inFlags = false;
+    for (const line of lines) {
+      if (line.startsWith("Flags:")) {
+        inFlags = true;
+        continue;
+      }
+      if (inFlags) {
+        if (line.trim() === "" || line.startsWith("Risk:")) break;
+        const flagMatch = line.match(/(?:-\w,\s+)?--(\S+?)(?:\s+(\S+)\s+|\s+)(.*)/);
+        if (flagMatch) {
+          const [, name, typeHint, desc] = flagMatch;
+          if (["help", "dry-run", "format", "jq", "as", "yes"].includes(name)) continue;
+          const knownTypes = ["string", "int", "float", "duration", "stringArray", "strings"];
+          const type = typeHint === "int" || typeHint === "float" ? "number"
+            : typeHint && knownTypes.includes(typeHint) ? "string"
+            : "boolean";
+          flags.push({ name, type, description: desc.trim(), required: false });
+        }
+      }
+    }
+
+    const riskLine = lines.find((l) => l.startsWith("Risk:"));
+    const risk = riskLine?.replace("Risk:", "").trim() ?? "read";
+
+    return { service, command: shortcut, description, risk, flags };
+  } catch {
+    return null;
+  }
+}
+
+async function generateAll() {
+  const tools: ToolDef[] = [];
+  const batchSize = 20;
+
+  for (let i = 0; i < allShortcuts.length; i += batchSize) {
+    const batch = allShortcuts.slice(i, i + batchSize);
+    const results = await Promise.all(
+      batch.map(({ service, shortcut }) => parseShortcutHelpAsync(service, shortcut))
+    );
+    for (const tool of results) {
+      if (tool) tools.push(tool);
     }
   }
+
+  console.log(`\nGenerated ${tools.length} tool definitions`);
+  writeFileSync(outPath, JSON.stringify(tools, null, 2));
+  console.log(`Written to ${outPath}`);
 }
 
-// Mark required flags based on source code patterns (conservative: only --start/--end for calendar +create etc.)
-for (const tool of tools) {
-  if (tool.description.toLowerCase().includes("required")) {
-    // parse from desc
-  }
-}
-
-console.log(`\nGenerated ${tools.length} tool definitions`);
-writeFileSync(outPath, JSON.stringify(tools, null, 2));
-console.log(`Written to ${outPath}`);
+await generateAll();

@@ -60,7 +60,7 @@
       {
         "name": "without-content",
         "type": "boolean",
-        "description": "copy structure only",
+        "description": "structure only",
         "required": false
       }
     ]
@@ -164,7 +164,7 @@
       {
         "name": "no-validate",
         "type": "boolean",
-        "description": "skip local data_config validation",
+        "description": "local data_config validation",
         "required": false
       },
       {
@@ -310,7 +310,7 @@
       {
         "name": "no-validate",
         "type": "boolean",
-        "description": "skip local data_config validation",
+        "description": "local data_config validation",
         "required": false
       },
       {
@@ -993,8 +993,8 @@
       },
       {
         "name": "record-id",
-        "type": "boolean",
-        "description": "stringArray   record ID (repeatable)",
+        "type": "string",
+        "description": "record ID (repeatable)",
         "required": false
       },
       {
@@ -1025,14 +1025,14 @@
       },
       {
         "name": "record-id",
-        "type": "boolean",
-        "description": "stringArray   record ID (repeatable)",
+        "type": "string",
+        "description": "record ID (repeatable)",
         "required": false
       },
       {
         "name": "field-id",
-        "type": "boolean",
-        "description": "stringArray    field ID or name to project; repeat to keep only needed columns",
+        "type": "string",
+        "description": "field ID or name to project; repeat to keep only needed columns",
         "required": false
       },
       {
@@ -1101,8 +1101,8 @@
       },
       {
         "name": "field-id",
-        "type": "boolean",
-        "description": "stringArray   field ID or name to include; repeat to project only needed fields",
+        "type": "string",
+        "description": "field ID or name to include; repeat to project only needed fields",
         "required": false
       },
       {
@@ -1165,8 +1165,8 @@
       },
       {
         "name": "record-ids",
-        "type": "boolean",
-        "description": "strings   record IDs to generate share links for (comma-separated or repeatable, max 100)",
+        "type": "string",
+        "description": "record IDs to generate share links for (comma-separated or repeatable, max 100)",
         "required": false
       },
       {
@@ -2263,8 +2263,8 @@
       },
       {
         "name": "slot",
-        "type": "boolean",
-        "description": "stringArray      event time slot in start~end format; repeatable",
+        "type": "string",
+        "description": "event time slot in start~end format; repeatable",
         "required": false
       },
       {
@@ -2390,7 +2390,7 @@
       {
         "name": "notify",
         "type": "boolean",
-        "description": "send update notification to attendees (default true)",
+        "description": "update notification to attendees (default true)",
         "required": false
       },
       {
@@ -2448,19 +2448,19 @@
       {
         "name": "exclude-external-users",
         "type": "boolean",
-        "description": "exclude external (cross-tenant) users; default includes them (omit to disable; =false rejected)",
+        "description": "external (cross-tenant) users; default includes them (omit to disable; =false rejected)",
         "required": false
       },
       {
         "name": "has-chatted",
         "type": "boolean",
-        "description": "restrict to users you've chatted with (omit to disable; =false rejected)",
+        "description": "to users you've chatted with (omit to disable; =false rejected)",
         "required": false
       },
       {
         "name": "has-enterprise-email",
         "type": "boolean",
-        "description": "restrict to users with enterprise email (omit to disable; =false rejected)",
+        "description": "to users with enterprise email (omit to disable; =false rejected)",
         "required": false
       },
       {
@@ -2472,7 +2472,7 @@
       {
         "name": "left-organization",
         "type": "boolean",
-        "description": "restrict to users who have left the organization (omit to disable; =false rejected)",
+        "description": "to users who have left the organization (omit to disable; =false rejected)",
         "required": false
       },
       {
@@ -2592,7 +2592,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       },
       {
@@ -2624,7 +2624,7 @@
       {
         "name": "before",
         "type": "boolean",
-        "description": "insert before the matched block instead of after (requires --selection-with-ellipsis)",
+        "description": "before the matched block instead of after (requires --selection-with-ellipsis)",
         "required": false
       },
       {
@@ -2654,7 +2654,7 @@
       {
         "name": "from-clipboard",
         "type": "boolean",
-        "description": "read image from system clipboard instead of a local file (macOS/Windows built-in; Linux requires xclip, xsel or wl-paste)",
+        "description": "image from system clipboard instead of a local file (macOS/Windows built-in; Linux requires xclip, xsel or wl-paste)",
         "required": false
       },
       {
@@ -2698,7 +2698,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       },
       {
@@ -2844,7 +2844,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite the whiteboard content, delete all existing content before update. Default is false.",
+        "description": "the whiteboard content, delete all existing content before update. Default is false.",
         "required": false
       },
       {
@@ -2888,7 +2888,7 @@
       {
         "name": "full-comment",
         "type": "boolean",
-        "description": "create a full-document comment; also the default when no location is provided",
+        "description": "a full-document comment; also the default when no location is provided",
         "required": false
       },
       {
@@ -3024,7 +3024,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       }
     ]
@@ -3062,7 +3062,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       },
       {
@@ -3106,7 +3106,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       }
     ]
@@ -3178,7 +3178,7 @@
       {
         "name": "delete-local",
         "type": "boolean",
-        "description": "delete local regular files absent from Drive (file-level mirror; empty directories are NOT pruned); requires --yes",
+        "description": "local regular files absent from Drive (file-level mirror; empty directories are NOT pruned); requires --yes",
         "required": false
       },
       {
@@ -3216,7 +3216,7 @@
       {
         "name": "delete-remote",
         "type": "boolean",
-        "description": "delete Drive files absent locally (file-level mirror; remote-only directories are not removed); requires --yes",
+        "description": "Drive files absent locally (file-level mirror; remote-only directories are not removed); requires --yes",
         "required": false
       },
       {
@@ -3314,19 +3314,19 @@
       {
         "name": "mine",
         "type": "boolean",
-        "description": "restrict to docs I created (uses current user's open_id)",
+        "description": "to docs I created (uses current user's open_id)",
         "required": false
       },
       {
         "name": "only-comment",
         "type": "boolean",
-        "description": "search comments only",
+        "description": "comments only",
         "required": false
       },
       {
         "name": "only-title",
         "type": "boolean",
-        "description": "match titles only",
+        "description": "titles only",
         "required": false
       },
       {
@@ -3400,7 +3400,7 @@
       {
         "name": "quick",
         "type": "boolean",
-        "description": "compare modified_time only and skip remote downloads for files present on both sides",
+        "description": "modified_time only and skip remote downloads for files present on both sides",
         "required": false
       }
     ]
@@ -3514,7 +3514,7 @@
       {
         "name": "set-bot-manager",
         "type": "boolean",
-        "description": "set the bot that creates this chat as manager (bot identity only)",
+        "description": "the bot that creates this chat as manager (bot identity only)",
         "required": false
       },
       {
@@ -3540,7 +3540,7 @@
       {
         "name": "exclude-muted",
         "type": "boolean",
-        "description": "(user identity only) drop chats the current user has muted (do-not-disturb); bot identity returns all chats unfiltered",
+        "description": "identity only) drop chats the current user has muted (do-not-disturb); bot identity returns all chats unfiltered",
         "required": false
       },
       {
@@ -3628,19 +3628,19 @@
       {
         "name": "disable-search-by-user",
         "type": "boolean",
-        "description": "disable search-by-member-name (default: search by member name first, then group name)",
+        "description": "search-by-member-name (default: search by member name first, then group name)",
         "required": false
       },
       {
         "name": "exclude-muted",
         "type": "boolean",
-        "description": "(user identity only) drop chats the current user has muted (do-not-disturb); bot identity returns all chats unfiltered",
+        "description": "identity only) drop chats the current user has muted (do-not-disturb); bot identity returns all chats unfiltered",
         "required": false
       },
       {
         "name": "is-manager",
         "type": "boolean",
-        "description": "only show chats you created or manage",
+        "description": "show chats you created or manage",
         "required": false
       },
       {
@@ -3768,13 +3768,13 @@
       {
         "name": "enrich-feed-thread",
         "type": "boolean",
-        "description": "fetch message content for feed-type thread entries (default true; may call messages/mget and require im:message.group_msg:get_as_user/im:message.p2p_msg:get_as_user; use --enrich-feed-thread=false to avoid extra scopes) (default true)",
+        "description": "message content for feed-type thread entries (default true; may call messages/mget and require im:message.group_msg:get_as_user/im:message.p2p_msg:get_as_user; use --enrich-feed-thread=false to avoid extra scopes) (default true)",
         "required": false
       },
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages",
+        "description": "paginate through all pages",
         "required": false
       },
       {
@@ -3868,7 +3868,7 @@
       {
         "name": "reply-in-thread",
         "type": "boolean",
-        "description": "reply in thread (message appears in thread stream instead of main chat)",
+        "description": "in thread (message appears in thread stream instead of main chat)",
         "required": false
       },
       {
@@ -3968,13 +3968,13 @@
       {
         "name": "is-at-me",
         "type": "boolean",
-        "description": "only messages that @me",
+        "description": "messages that @me",
         "required": false
       },
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate search results",
+        "description": "paginate search results",
         "required": false
       },
       {
@@ -4228,7 +4228,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Force plain-text mode, ignoring HTML auto-detection. Cannot be used with --inline.",
+        "description": "plain-text mode, ignoring HTML auto-detection. Cannot be used with --inline.",
         "required": false
       },
       {
@@ -4240,13 +4240,13 @@
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
         "required": false
       },
       {
         "name": "signature-id",
         "type": "boolean",
-        "description": "mail +signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
+        "description": "+signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
         "required": false
       },
       {
@@ -4290,7 +4290,7 @@
       {
         "name": "inspect",
         "type": "boolean",
-        "description": "Inspect the draft without modifying it. Returns the draft projection including subject, recipients, body summary, has_quoted_content (whether the draft contains a reply/forward quote block), attachments_summary (with part_id and cid for each attachment), and inline_summary. Run this BEFORE editing body to check has_quoted_content: if true, use set_reply_body in --patch-file to preserve the quote; if false, use set_body.",
+        "description": "the draft without modifying it. Returns the draft projection including subject, recipients, body summary, has_quoted_content (whether the draft contains a reply/forward quote block), attachments_summary (with part_id and cid for each attachment), and inline_summary. Run this BEFORE editing body to check has_quoted_content: if true, use set_reply_body in --patch-file to preserve the quote; if false, use set_body.",
         "required": false
       },
       {
@@ -4308,19 +4308,19 @@
       {
         "name": "print-patch-template",
         "type": "boolean",
-        "description": "Print the JSON template and supported operations for the --patch-file flag. Recommended first step before generating a patch file. No draft read or write is performed.",
+        "description": "the JSON template and supported operations for the --patch-file flag. Recommended first step before generating a patch file. No draft read or write is performed.",
         "required": false
       },
       {
         "name": "remove-event",
         "type": "boolean",
-        "description": "Remove the calendar event from the draft.",
+        "description": "the calendar event from the draft.",
         "required": false
       },
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the draft's sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed. Adds the Disposition-Notification-To header; existing value is overwritten.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the draft's sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed. Adds the Disposition-Notification-To header; existing value is overwritten.",
         "required": false
       },
       {
@@ -4412,7 +4412,7 @@
       {
         "name": "confirm-send",
         "type": "boolean",
-        "description": "Send the forward immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
+        "description": "the forward immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
         "required": false
       },
       {
@@ -4466,7 +4466,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Force plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
+        "description": "plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
         "required": false
       },
       {
@@ -4478,7 +4478,7 @@
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
         "required": false
       },
       {
@@ -4490,7 +4490,7 @@
       {
         "name": "signature-id",
         "type": "boolean",
-        "description": "mail +signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
+        "description": "+signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
         "required": false
       },
       {
@@ -4522,7 +4522,7 @@
       {
         "name": "html",
         "type": "boolean",
-        "description": "Whether to return HTML body (false returns plain text only to save bandwidth) (default true)",
+        "description": "to return HTML body (false returns plain text only to save bandwidth) (default true)",
         "required": false
       },
       {
@@ -4540,7 +4540,7 @@
       {
         "name": "print-output-schema",
         "type": "boolean",
-        "description": "Print output field reference (run this first to learn field names before parsing output)",
+        "description": "output field reference (run this first to learn field names before parsing output)",
         "required": false
       }
     ]
@@ -4554,7 +4554,7 @@
       {
         "name": "html",
         "type": "boolean",
-        "description": "Whether to return HTML body (false returns plain text only to save bandwidth) (default true)",
+        "description": "to return HTML body (false returns plain text only to save bandwidth) (default true)",
         "required": false
       },
       {
@@ -4572,7 +4572,7 @@
       {
         "name": "print-output-schema",
         "type": "boolean",
-        "description": "Print output field reference (run this first to learn field names before parsing output)",
+        "description": "output field reference (run this first to learn field names before parsing output)",
         "required": false
       }
     ]
@@ -4610,7 +4610,7 @@
       {
         "name": "confirm-send",
         "type": "boolean",
-        "description": "Send the reply immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
+        "description": "the reply immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
         "required": false
       },
       {
@@ -4664,7 +4664,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Force plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
+        "description": "plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
         "required": false
       },
       {
@@ -4676,7 +4676,7 @@
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
         "required": false
       },
       {
@@ -4688,7 +4688,7 @@
       {
         "name": "signature-id",
         "type": "boolean",
-        "description": "mail +signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
+        "description": "+signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
         "required": false
       },
       {
@@ -4744,7 +4744,7 @@
       {
         "name": "confirm-send",
         "type": "boolean",
-        "description": "Send the reply immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
+        "description": "the reply immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
         "required": false
       },
       {
@@ -4798,7 +4798,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Force plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
+        "description": "plain-text mode, ignoring all HTML auto-detection. Cannot be used with --inline.",
         "required": false
       },
       {
@@ -4816,7 +4816,7 @@
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
         "required": false
       },
       {
@@ -4828,7 +4828,7 @@
       {
         "name": "signature-id",
         "type": "boolean",
-        "description": "mail +signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
+        "description": "+signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
         "required": false
       },
       {
@@ -4884,7 +4884,7 @@
       {
         "name": "confirm-send",
         "type": "boolean",
-        "description": "Send the email immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
+        "description": "the email immediately instead of saving as draft. Only use after the user has explicitly confirmed recipients and content.",
         "required": false
       },
       {
@@ -4932,7 +4932,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Force plain-text mode, ignoring HTML auto-detection. Cannot be used with --inline.",
+        "description": "plain-text mode, ignoring HTML auto-detection. Cannot be used with --inline.",
         "required": false
       },
       {
@@ -4944,7 +4944,7 @@
       {
         "name": "request-receipt",
         "type": "boolean",
-        "description": "Request a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
+        "description": "a read receipt (Message Disposition Notification, RFC 3798) addressed to the sender. Recipient mail clients may prompt the user, send automatically, or silently ignore — delivery of a receipt is not guaranteed.",
         "required": false
       },
       {
@@ -4956,7 +4956,7 @@
       {
         "name": "signature-id",
         "type": "boolean",
-        "description": "mail +signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
+        "description": "+signature   Optional. Signature ID to append after body content. Run mail +signature to list available signatures.",
         "required": false
       },
       {
@@ -5102,7 +5102,7 @@
       {
         "name": "plain-text",
         "type": "boolean",
-        "description": "Mark the template as plain-text mode (is_plain_text_mode=true). Inline images still require HTML content; use only for pure plain-text templates.",
+        "description": "the template as plain-text mode (is_plain_text_mode=true). Inline images still require HTML content; use only for pure plain-text templates.",
         "required": false
       },
       {
@@ -5146,7 +5146,7 @@
       {
         "name": "inspect",
         "type": "boolean",
-        "description": "Inspect the template without modifying it. Returns the current template projection (name/subject/addresses/attachments). No write is performed.",
+        "description": "the template without modifying it. Returns the current template projection (name/subject/addresses/attachments). No write is performed.",
         "required": false
       },
       {
@@ -5164,7 +5164,7 @@
       {
         "name": "print-patch-template",
         "type": "boolean",
-        "description": "Print a JSON template describing the supported --patch-file structure. No network call is made.",
+        "description": "a JSON template describing the supported --patch-file structure. No network call is made.",
         "required": false
       },
       {
@@ -5188,7 +5188,7 @@
       {
         "name": "set-plain-text",
         "type": "boolean",
-        "description": "Set is_plain_text_mode=true.",
+        "description": "is_plain_text_mode=true.",
         "required": false
       },
       {
@@ -5232,13 +5232,13 @@
       {
         "name": "html",
         "type": "boolean",
-        "description": "Whether to return HTML body (false returns plain text only to save bandwidth) (default true)",
+        "description": "to return HTML body (false returns plain text only to save bandwidth) (default true)",
         "required": false
       },
       {
         "name": "include-spam-trash",
         "type": "boolean",
-        "description": "Also return messages from SPAM and TRASH folders (excluded by default)",
+        "description": "return messages from SPAM and TRASH folders (excluded by default)",
         "required": false
       },
       {
@@ -5250,7 +5250,7 @@
       {
         "name": "print-output-schema",
         "type": "boolean",
-        "description": "Print output field reference (run this first to learn field names before parsing output)",
+        "description": "output field reference (run this first to learn field names before parsing output)",
         "required": false
       },
       {
@@ -5276,7 +5276,7 @@
       {
         "name": "labels",
         "type": "boolean",
-        "description": "include label IDs in output",
+        "description": "label IDs in output",
         "required": false
       },
       {
@@ -5306,7 +5306,7 @@
       {
         "name": "print-filter-schema",
         "type": "boolean",
-        "description": "print --filter field reference and exit",
+        "description": "--filter field reference and exit",
         "required": false
       },
       {
@@ -5368,7 +5368,7 @@
       {
         "name": "print-output-schema",
         "type": "boolean",
-        "description": "Print output field reference per --msg-format (run this first to learn field names before parsing output)",
+        "description": "output field reference per --msg-format (run this first to learn field names before parsing output)",
         "required": false
       }
     ]
@@ -5426,7 +5426,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing local output file",
+        "description": "existing local output file",
         "required": false
       }
     ]
@@ -5490,13 +5490,13 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing output file",
+        "description": "existing output file",
         "required": false
       },
       {
         "name": "url-only",
         "type": "boolean",
-        "description": "only print the download URL(s) without downloading",
+        "description": "print the download URL(s) without downloading",
         "required": false
       }
     ]
@@ -6414,19 +6414,19 @@
       {
         "name": "ignore-case",
         "type": "boolean",
-        "description": "case-insensitive search",
+        "description": "search",
         "required": false
       },
       {
         "name": "include-formulas",
         "type": "boolean",
-        "description": "search formulas",
+        "description": "formulas",
         "required": false
       },
       {
         "name": "match-entire-cell",
         "type": "boolean",
-        "description": "match entire cell",
+        "description": "entire cell",
         "required": false
       },
       {
@@ -6438,7 +6438,7 @@
       {
         "name": "search-by-regex",
         "type": "boolean",
-        "description": "regex search",
+        "description": "search",
         "required": false
       },
       {
@@ -6910,19 +6910,19 @@
       {
         "name": "include-formulas",
         "type": "boolean",
-        "description": "search in formulas",
+        "description": "in formulas",
         "required": false
       },
       {
         "name": "match-case",
         "type": "boolean",
-        "description": "case-sensitive search",
+        "description": "search",
         "required": false
       },
       {
         "name": "match-entire-cell",
         "type": "boolean",
-        "description": "match entire cell content",
+        "description": "entire cell content",
         "required": false
       },
       {
@@ -6940,7 +6940,7 @@
       {
         "name": "search-by-regex",
         "type": "boolean",
-        "description": "use regex search",
+        "description": "regex search",
         "required": false
       },
       {
@@ -6984,13 +6984,13 @@
       {
         "name": "highlight",
         "type": "boolean",
-        "description": "color-code options (default false)",
+        "description": "options (default false)",
         "required": false
       },
       {
         "name": "multiple",
         "type": "boolean",
-        "description": "enable multi-select (default false)",
+        "description": "multi-select (default false)",
         "required": false
       },
       {
@@ -7134,7 +7134,7 @@
       {
         "name": "visible",
         "type": "boolean",
-        "description": "true to show, false to hide",
+        "description": "to show, false to hide",
         "required": false
       }
     ]
@@ -7160,13 +7160,13 @@
       {
         "name": "highlight",
         "type": "boolean",
-        "description": "color-code options (default false)",
+        "description": "options (default false)",
         "required": false
       },
       {
         "name": "multiple",
         "type": "boolean",
-        "description": "enable multi-select (default false)",
+        "description": "multi-select (default false)",
         "required": false
       },
       {
@@ -7378,7 +7378,7 @@
       {
         "name": "hidden",
         "type": "boolean",
-        "description": "set true to hide or false to unhide",
+        "description": "true to hide or false to unhide",
         "required": false
       },
       {
@@ -7760,7 +7760,7 @@
       {
         "name": "complete",
         "type": "boolean",
-        "description": "if true, query completed tasks;if false, query incompleted tasks; if not provided, both completed and incompleted tasks are queried.",
+        "description": "true, query completed tasks;if false, query incompleted tasks; if not provided, both completed and incompleted tasks are queried.",
         "required": false
       },
       {
@@ -7784,7 +7784,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (max 40)",
+        "description": "paginate through all pages (max 40)",
         "required": false
       },
       {
@@ -7816,25 +7816,25 @@
       {
         "name": "created-by-me",
         "type": "boolean",
-        "description": "client-side filter to tasks created by me; pagination still follows upstream related-task pages",
+        "description": "filter to tasks created by me; pagination still follows upstream related-task pages",
         "required": false
       },
       {
         "name": "followed-by-me",
         "type": "boolean",
-        "description": "client-side filter to tasks followed by me; pagination still follows upstream related-task pages",
+        "description": "filter to tasks followed by me; pagination still follows upstream related-task pages",
         "required": false
       },
       {
         "name": "include-complete",
         "type": "boolean",
-        "description": "default true; set false to return only incomplete tasks",
+        "description": "true; set false to return only incomplete tasks",
         "required": false
       },
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (max 40)",
+        "description": "paginate through all pages (max 40)",
         "required": false
       },
       {
@@ -7860,7 +7860,7 @@
       {
         "name": "remove",
         "type": "boolean",
-        "description": "removes all existing reminders",
+        "description": "all existing reminders",
         "required": false
       },
       {
@@ -7906,7 +7906,7 @@
       {
         "name": "completed",
         "type": "boolean",
-        "description": "set true for completed or false for incomplete tasks",
+        "description": "true for completed or false for incomplete tasks",
         "required": false
       },
       {
@@ -7930,7 +7930,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (max 40)",
+        "description": "paginate through all pages (max 40)",
         "required": false
       },
       {
@@ -8059,7 +8059,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (max 40)",
+        "description": "paginate through all pages (max 40)",
         "required": false
       },
       {
@@ -8199,7 +8199,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all available pages",
+        "description": "paginate through all available pages",
         "required": false
       },
       {
@@ -8289,7 +8289,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing artifact files",
+        "description": "existing artifact files",
         "required": false
       }
     ]
@@ -8391,7 +8391,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite existing file if it exists",
+        "description": "existing file if it exists",
         "required": false
       },
       {
@@ -8423,7 +8423,7 @@
       {
         "name": "overwrite",
         "type": "boolean",
-        "description": "overwrite the whiteboard content, delete all existing content before update. Default is false.",
+        "description": "the whiteboard content, delete all existing content before update. Default is false.",
         "required": false
       },
       {
@@ -8463,7 +8463,7 @@
       {
         "name": "apply",
         "type": "boolean",
-        "description": "submit a move request when the caller lacks permission to move the document immediately",
+        "description": "a move request when the caller lacks permission to move the document immediately",
         "required": false
       },
       {
@@ -8595,7 +8595,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (capped by --page-limit)",
+        "description": "paginate through all pages (capped by --page-limit)",
         "required": false
       },
       {
@@ -8639,7 +8639,7 @@
       {
         "name": "page-all",
         "type": "boolean",
-        "description": "automatically paginate through all pages (capped by --page-limit)",
+        "description": "paginate through all pages (capped by --page-limit)",
         "required": false
       },
       {
