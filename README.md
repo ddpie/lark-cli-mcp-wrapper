@@ -86,9 +86,6 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 | Name | Lark CLI MCP Wrapper |
 | Command | `npx` |
 | Arguments | `lark-cli-mcp-wrapper` |
-| Timeout | `300` |
-
-> `npx github:user/repo` 会自动从 GitHub 拉取仓库并运行，无需手动 clone。首次启动需拉取和编译，Timeout 建议设为 300。
 
 <img src="images/mcp-add-config.png" width="400" alt="Add MCP 配置">
 
@@ -184,7 +181,9 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 不同版本的 lark-cli 支持的 shortcut 命令不同。安装时自动扫描本地 lark-cli 的全部命令，生成与当前版本完全匹配的工具定义。
 
-如果遇到 `Usage: lark-cli xxx [command]` 错误，说明 lark-cli 已升级但工具定义是旧的。清除 npx 缓存重新安装即可：
+升级 lark-cli 后，在 Amazon Quick Desktop 中只需关闭再重新打开该 MCP 连接，即可自动同步最新的工具列表。
+
+如果遇到 `Usage: lark-cli xxx [command]` 错误，说明 lark-cli 已升级但工具定义是旧的。清除缓存重新安装即可：
 
 ```bash
 lark-cli update

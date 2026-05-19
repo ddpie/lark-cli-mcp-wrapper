@@ -198,9 +198,8 @@ echo "    Connection type:  Local"
 echo "    Name:             Lark CLI MCP Wrapper"
 echo "    Command:          npx"
 echo "    Arguments:        lark-cli-mcp-wrapper"
-echo "    Timeout:          300"
 echo ""
-echo "  方式二：JSON 配置（Claude Code / Cursor / Kiro 等）"
+echo "  方式二：JSON 配置（其他支持 MCP 的客户端）"
 echo ""
 echo '    {
       "mcpServers": {
