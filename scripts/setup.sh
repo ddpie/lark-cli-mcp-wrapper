@@ -40,8 +40,11 @@ if command -v node &>/dev/null; then
       read -p "  是否通过 brew 升级? [Y/n] " -n 1 -r
       echo
       if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-        brew install node
-        success "Node.js 已升级"
+        if brew install node; then
+          success "Node.js 已升级"
+        else
+          ISSUES+=("Node.js 升级失败，请手动运行：brew install node")
+        fi
       else
         ISSUES+=("Node.js 版本过低，需要 >= 18：brew install node")
       fi
@@ -55,8 +58,11 @@ else
     read -p "  是否通过 brew 安装? [Y/n] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-      brew install node
-      success "Node.js 已安装"
+      if brew install node; then
+        success "Node.js 已安装"
+      else
+        ISSUES+=("Node.js 安装失败，请手动运行：brew install node")
+      fi
     else
       ISSUES+=("需要安装 Node.js >= 18：brew install node")
     fi
@@ -64,7 +70,6 @@ else
     ISSUES+=("需要安装 Node.js >= 18。建议先安装 Homebrew (https://brew.sh)")
   fi
 fi
-
 
 # ─── Check lark-cli ──────────────────────────────────────────────────────────
 
@@ -78,9 +83,12 @@ else
     read -p "  是否安装 lark-cli? [Y/n] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
-      info "安装中，可能需要 1-2 分钟..."
-      npm install -g @larksuite/cli
-      success "lark-cli 已安装"
+      info "安装中..."
+      if npm install -g @larksuite/cli; then
+        success "lark-cli 已安装"
+      else
+        ISSUES+=("lark-cli 安装失败，请手动运行：npm install -g @larksuite/cli")
+      fi
     else
       ISSUES+=("需要安装 lark-cli：npm install -g @larksuite/cli")
     fi
@@ -89,21 +97,56 @@ else
   fi
 fi
 
+# ─── Check lark-cli config ───────────────────────────────────────────────────
+
+if command -v lark-cli &>/dev/null; then
+  info "检查 lark-cli 应用配置..."
+  AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+  HAS_APP_ID=$(echo "$AUTH_OUTPUT" | grep -o '"appId"' || true)
+
+  if [ -z "$HAS_APP_ID" ]; then
+    warn "未配置飞书应用"
+    echo ""
+    echo "  需要先配置飞书应用的 App ID 和 App Secret。"
+    echo "  （在飞书开放平台创建应用后获取：https://open.feishu.cn）"
+    echo ""
+    read -p "  是否现在配置? [Y/n] " -n 1 -r
+    echo
+    if [[ ! $REPLY =~ ^[Nn]$ ]]; then
+      lark-cli config init
+      if lark-cli auth status 2>&1 | grep -q '"appId"'; then
+        success "应用配置完成"
+      else
+        ISSUES+=("应用配置未完成，请手动运行：lark-cli config init")
+      fi
+    else
+      ISSUES+=("需要配置飞书应用：lark-cli config init")
+    fi
+  else
+    success "飞书应用已配置"
+  fi
+fi
+
 # ─── Check lark-cli auth ─────────────────────────────────────────────────────
 
 if command -v lark-cli &>/dev/null; then
   info "检查 lark-cli 登录状态..."
-  if lark-cli auth status &>/dev/null; then
-    success "lark-cli 已登录"
+  AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+  HAS_USER=$(echo "$AUTH_OUTPUT" | grep -o '"identity": *"user"' || true)
+
+  if [ -n "$HAS_USER" ]; then
+    USER_NAME=$(echo "$AUTH_OUTPUT" | grep -o '"userName": *"[^"]*"' | sed 's/.*: *"//;s/"//')
+    success "lark-cli 已登录（$USER_NAME）"
   else
-    warn "lark-cli 未登录"
+    warn "lark-cli 未完成用户登录"
     echo ""
-    echo "  需要完成飞书 OAuth 授权（会打开浏览器）。"
+    echo "  需要完成飞书 Device Flow 授权（会显示一个链接和验证码，在浏览器中打开并输入）。"
     read -p "  是否现在执行 lark-cli auth login? [Y/n] " -n 1 -r
     echo
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       lark-cli auth login
-      if lark-cli auth status &>/dev/null; then
+      AUTH_OUTPUT=$(lark-cli auth status 2>&1)
+      if echo "$AUTH_OUTPUT" | grep -q '"identity": *"user"'; then
         success "lark-cli 登录成功"
       else
         ISSUES+=("lark-cli 登录未完成，请手动执行：lark-cli auth login")
@@ -117,9 +160,12 @@ fi
 # ─── Test MCP wrapper ────────────────────────────────────────────────────────
 
 if [ ${#ISSUES[@]} -eq 0 ] && command -v npx &>/dev/null; then
-  info "测试 MCP wrapper 是否可用..."
-  echo '' | npx --yes lark-cli-mcp-wrapper &>/dev/null
-  success "MCP wrapper 测试通过"
+  info "测试 MCP wrapper..."
+  if echo '' | npx --yes lark-cli-mcp-wrapper 2>/dev/null; then
+    success "MCP wrapper 可用"
+  else
+    warn "MCP wrapper 测试未通过（首次运行可能需要等待安装）"
+  fi
 fi
 
 # ─── Summary ─────────────────────────────────────────────────────────────────
