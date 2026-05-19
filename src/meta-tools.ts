@@ -28,6 +28,7 @@ const DISCOVER_SCHEMA = {
       },
     },
   },
+  annotations: { readOnlyHint: true },
 };
 
 const INVOKE_SCHEMA = {
@@ -42,6 +43,7 @@ const INVOKE_SCHEMA = {
       args: { type: "object" },
     },
   },
+  annotations: { readOnlyHint: false, destructiveHint: false },
 };
 
 export function getMetaToolSchemas() {

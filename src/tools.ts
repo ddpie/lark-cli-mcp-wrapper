@@ -9,6 +9,7 @@ export interface McpTool {
     name: string;
     description: string;
     inputSchema: Record<string, unknown>;
+    annotations?: Record<string, unknown>;
   };
   def: ToolDef;
 }
@@ -35,6 +36,16 @@ export function buildInputSchema(def: ToolDef): Record<string, unknown> {
   };
 }
 
+export function buildAnnotations(risk: string): Record<string, unknown> {
+  if (risk === "read") {
+    return { readOnlyHint: true };
+  }
+  if (risk === "high-risk-write") {
+    return { readOnlyHint: false, destructiveHint: true };
+  }
+  return { readOnlyHint: false, destructiveHint: false };
+}
+
 export function buildTierOneTools(): McpTool[] {
   const tier1Set = new Set(tier1Names);
   const tools: McpTool[] = [];
@@ -47,6 +58,7 @@ export function buildTierOneTools(): McpTool[] {
         name,
         description: `[${def.risk}] ${def.description}`,
         inputSchema: buildInputSchema(def),
+        annotations: buildAnnotations(def.risk),
       },
       def,
     });
