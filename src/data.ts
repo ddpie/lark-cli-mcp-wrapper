@@ -1,4 +1,7 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, resolve } from "node:path";
+import { getLarkCliVersion, generateTools } from "./generate.js";
 
 export interface ToolFlag {
   name: string;
@@ -16,12 +19,45 @@ export interface ToolDef {
   flags: ToolFlag[];
 }
 
-export const toolDefs: ToolDef[] = JSON.parse(
-  readFileSync(new URL("./generated-tools.json", import.meta.url), "utf-8")
-);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const generatedPath = resolve(__dirname, "generated-tools.json");
+
+function loadToolDefs(): ToolDef[] {
+  if (!existsSync(generatedPath)) return [];
+  const raw = JSON.parse(readFileSync(generatedPath, "utf-8"));
+  if (Array.isArray(raw)) return raw;
+  return raw.tools ?? [];
+}
+
+function getStoredVersion(): string | null {
+  if (!existsSync(generatedPath)) return null;
+  try {
+    const raw = JSON.parse(readFileSync(generatedPath, "utf-8"));
+    return raw._larkCliVersion ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function ensureToolsUpToDate(): Promise<void> {
+  const currentVersion = getLarkCliVersion();
+  if (!currentVersion) return;
+
+  const storedVersion = getStoredVersion();
+  if (storedVersion === currentVersion) return;
+
+  console.error(`[info] lark-cli version changed (${storedVersion} → ${currentVersion}), regenerating tools...`);
+  await generateTools(generatedPath);
+  // Reload
+  const raw = JSON.parse(readFileSync(generatedPath, "utf-8"));
+  const newTools: ToolDef[] = raw.tools ?? [];
+  toolDefs.splice(0, toolDefs.length, ...newTools);
+}
+
+export const toolDefs: ToolDef[] = loadToolDefs();
 
 export const tier1Names: string[] = JSON.parse(
-  readFileSync(new URL("./tier1.json", import.meta.url), "utf-8")
+  readFileSync(resolve(__dirname, "tier1.json"), "utf-8")
 );
 
 export function toToolName(def: ToolDef): string {
