@@ -2,7 +2,7 @@
 
 将 [lark-cli](https://github.com/larksuite/cli) 的 200+ 个命令封装为 [MCP](https://modelcontextprotocol.io/) stdio server，让 [Amazon Quick Desktop](https://aws.amazon.com/quick/desktop/) 等支持 MCP 的 AI 助手直接操作飞书/Lark。
 
-28 个高频工具直接注册，其余通过 `lark_discover` + `lark_invoke` 按需调用，共 30 个 MCP tools。安装时自动扫描本地 lark-cli 生成工具定义，确保版本完全匹配。
+28 个高频工具直接注册，其余通过 `lark_discover` + `lark_invoke` 按需调用，共 30 个 MCP tools。每次启动自动检测本地 lark-cli 版本，版本变化时自动重新生成工具定义。
 
 配置完成后，你可以用自然语言让 AI 助手：
 
@@ -19,7 +19,7 @@
 |---|---|---|
 | 工具数量 | 200+（全部 lark-cli 命令） | 通常 4-85 个 |
 | 使用方式 | npx 直接运行，无需克隆代码，无需额外启动服务 | 需克隆仓库、安装依赖、手动启动 |
-| 新命令支持 | 安装时自动适配本地 lark-cli 版本 | 需等待项目更新 |
+| 新命令支持 | 每次启动自动适配本地 lark-cli 版本 | 需等待项目更新 |
 | 认证 | 复用 lark-cli 登录态 | 需单独配置 App 凭证 |
 | AI 交互 | 分层架构：高频直达 + 低频按需发现 | 全部工具平铺注入 context |
 
@@ -179,17 +179,9 @@ Settings → Capabilities → MCP → **+ Add MCP**：
 
 ## 工具列表自动适配
 
-不同版本的 lark-cli 支持的 shortcut 命令不同。安装时自动扫描本地 lark-cli 的全部命令，生成与当前版本完全匹配的工具定义。
+每次启动时自动检测本地 lark-cli 版本。如果版本发生变化，会自动重新扫描并生成匹配的工具定义，无需手动操作。
 
 升级 lark-cli 后，在 Amazon Quick Desktop 中只需关闭再重新打开该 MCP 连接，即可自动同步最新的工具列表。
-
-如果遇到 `Usage: lark-cli xxx [command]` 错误，说明 lark-cli 已升级但工具定义是旧的。清除缓存重新安装即可：
-
-```bash
-lark-cli update
-rm -rf ~/.npm/_npx
-npx lark-cli-mcp-wrapper
-```
 
 ## License
 
