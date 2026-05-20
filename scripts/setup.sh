@@ -132,11 +132,10 @@ fi
 if command -v lark-cli &>/dev/null; then
   info "检查 lark-cli 登录状态..."
   AUTH_OUTPUT=$(NO_COLOR=1 lark-cli auth status 2>&1)
-  HAS_USER=$(echo "$AUTH_OUTPUT" | grep -o '"identity": *"user"' || true)
 
-  if [ -n "$HAS_USER" ]; then
-    USER_NAME=$(echo "$AUTH_OUTPUT" | grep -o '"userName": *"[^"]*"' | sed 's/.*: *"//;s/"//')
-    success "lark-cli 已登录（$USER_NAME）"
+  USER_NAME=$(echo "$AUTH_OUTPUT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>{const j=JSON.parse(d);if(j.identity==='user'){process.stdout.write(j.userName||'');process.exit(0)}else{process.exit(1)}})" 2>/dev/null)
+  if [ $? -eq 0 ]; then
+    success "lark-cli 已登录（ $USER_NAME ）"
   else
     warn "lark-cli 未完成用户登录"
     echo ""
@@ -146,7 +145,7 @@ if command -v lark-cli &>/dev/null; then
     if [[ ! $REPLY =~ ^[Nn]$ ]]; then
       lark-cli auth login
       AUTH_OUTPUT=$(NO_COLOR=1 lark-cli auth status 2>&1)
-      if echo "$AUTH_OUTPUT" | grep -q '"identity": *"user"'; then
+      if echo "$AUTH_OUTPUT" | node -e "let d='';process.stdin.on('data',c=>d+=c);process.stdin.on('end',()=>process.exit(JSON.parse(d).identity==='user'?0:1))" 2>/dev/null; then
         success "lark-cli 登录成功"
       else
         ISSUES+=("lark-cli 登录未完成，请手动执行：lark-cli auth login")
