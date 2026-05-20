@@ -56,12 +56,12 @@ nvm install 18
 
 ```bash
 # 方式二：apt（需确认版本 >= 18）
-sudo apt install nodejs npm git
+sudo apt install nodejs npm
 ```
 
 ### Windows
 
-从以下地址下载安装包：[Node.js](https://nodejs.org/)、[Git](https://git-scm.com/downloads)
+从以下地址下载安装包：[Node.js](https://nodejs.org/)
 
 ### 安装并配置 lark-cli（所有平台）
 
