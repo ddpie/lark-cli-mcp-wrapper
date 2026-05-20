@@ -1,6 +1,6 @@
 {
   "name": "lark-cli-mcp-wrapper",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "MCP server wrapping lark-cli as stdio transport",
   "type": "module",
   "main": "dist/index.js",

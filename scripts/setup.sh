@@ -109,6 +109,7 @@ if command -v lark-cli &>/dev/null; then
     echo ""
     echo "  需要先配置飞书应用的 App ID 和 App Secret。"
     echo "  （在飞书开放平台创建应用后获取：https://open.feishu.cn）"
+    echo "  如无开放平台权限，请联系组织管理员获取应用凭证。"
     echo ""
     read -p "  是否现在配置? [Y/n] " -n 1 -r
     echo

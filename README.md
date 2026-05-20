@@ -25,7 +25,7 @@
 
 ## 快速安装（仅 macOS）
 
-一键检查并安装所有依赖，引导完成配置：
+一键检查并安装所有依赖，引导完成配置。脚本会引导配置飞书应用凭证，需有开放平台权限或提前向管理员获取应用凭证（App ID + App Secret）：
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/ddpie/lark-cli-mcp-wrapper/master/scripts/setup.sh)
@@ -37,6 +37,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/ddpie/lark-cli-mcp-wrapper/m
 
 - [Node.js](https://nodejs.org/) >= 18
 - [`lark-cli`](https://github.com/larksuite/cli)
+- 飞书应用凭证（App ID + App Secret）— 需要在[飞书开放平台](https://open.feishu.cn)创建自建应用并开通对应 API 权限。如无开放平台权限，请联系组织管理员获取应用凭证。详见 [lark-cli README](https://github.com/larksuite/cli#readme)。
 
 ### macOS
 
@@ -66,13 +67,9 @@ sudo apt install nodejs npm git
 
 ```bash
 npm install -g @larksuite/cli
+lark-cli config init    # 配置 App ID + App Secret（见前置条件）
+lark-cli auth login     # 完成用户授权
 ```
-
-```bash
-lark-cli auth login
-```
-
-> 执行 `auth login` 后会打开浏览器进行 OAuth 授权，需要飞书管理员预先创建好应用并配置权限。详见 [lark-cli README](https://github.com/larksuite/cli#readme)。
 
 ## 使用
 

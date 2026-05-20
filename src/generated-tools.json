@@ -1,5 +1,5 @@
 {
-  "_larkCliVersion": "1.0.32",
+  "_larkCliVersion": "1.0.34",
   "tools": [
     {
       "service": "base",
@@ -625,7 +625,7 @@
       "service": "base",
       "command": "+field-update",
       "description": "Update a field by ID or name",
-      "risk": "write",
+      "risk": "high-risk-write",
       "flags": [
         {
           "name": "base-token",
@@ -1009,6 +1009,50 @@
     },
     {
       "service": "base",
+      "command": "+record-download-attachment",
+      "description": "Download Base record attachments by record-id, optionally filtering by file-token",
+      "risk": "read",
+      "flags": [
+        {
+          "name": "base-token",
+          "type": "string",
+          "description": "base token",
+          "required": false
+        },
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "attachment file_token returned by Base; repeat to download selected files; omit to download all attachments in the record",
+          "required": false
+        },
+        {
+          "name": "output",
+          "type": "string",
+          "description": "local save path; with exactly one file token this may be a file path; with multiple or omitted file tokens this must be an existing directory",
+          "required": false
+        },
+        {
+          "name": "overwrite",
+          "type": "boolean",
+          "description": "existing output file",
+          "required": false
+        },
+        {
+          "name": "record-id",
+          "type": "string",
+          "description": "record ID",
+          "required": false
+        },
+        {
+          "name": "table-id",
+          "type": "string",
+          "description": "table ID (must start with tbl if ID) or name",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "base",
       "command": "+record-get",
       "description": "Get one or more records by ID",
       "risk": "read",
@@ -1129,6 +1173,44 @@
     },
     {
       "service": "base",
+      "command": "+record-remove-attachment",
+      "description": "Remove one or more file_token values from a Base record attachment cell",
+      "risk": "high-risk-write",
+      "flags": [
+        {
+          "name": "base-token",
+          "type": "string",
+          "description": "base token",
+          "required": false
+        },
+        {
+          "name": "field-id",
+          "type": "string",
+          "description": "field ID or name",
+          "required": false
+        },
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "attachment file_token to remove from the target cell; repeat to remove multiple attachments; max 50 tokens",
+          "required": false
+        },
+        {
+          "name": "record-id",
+          "type": "string",
+          "description": "record ID",
+          "required": false
+        },
+        {
+          "name": "table-id",
+          "type": "string",
+          "description": "table ID (must start with tbl if ID) or name",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "base",
       "command": "+record-search",
       "description": "Search records in a table",
       "risk": "read",
@@ -1182,7 +1264,7 @@
     {
       "service": "base",
       "command": "+record-upload-attachment",
-      "description": "Upload a local file to a Base attachment field and write it into the target record",
+      "description": "Upload one or more local files and append the returned file_token values to a Base attachment cell",
       "risk": "write",
       "flags": [
         {
@@ -1200,13 +1282,7 @@
         {
           "name": "file",
           "type": "string",
-          "description": "local file path (max 2GB; files > 20MB use multipart upload automatically)",
-          "required": false
-        },
-        {
-          "name": "name",
-          "type": "string",
-          "description": "attachment file name (default: local file name)",
+          "description": "local file path; repeat to append multiple attachments in one cell; max 50 files, max 2GB each; files > 20MB use multipart upload automatically",
           "required": false
         },
         {
@@ -3147,6 +3223,26 @@
     },
     {
       "service": "drive",
+      "command": "+inspect",
+      "description": "Inspect a Lark document URL to get its type, title, and canonical token (with wiki unwrapping)",
+      "risk": "read",
+      "flags": [
+        {
+          "name": "type",
+          "type": "string",
+          "description": "document type (required when --url is a bare token; auto-detected for URLs) (doc|docx|sheet|bitable|wiki|file|folder|mindnote|slides)",
+          "required": false
+        },
+        {
+          "name": "url",
+          "type": "string",
+          "description": "Lark/Feishu document URL (docx, doc, sheet, bitable, wiki, file, folder, mindnote, slides)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
       "command": "+move",
       "description": "Move a file or folder to another location in Drive",
       "risk": "write",
@@ -3409,8 +3505,46 @@
     },
     {
       "service": "drive",
+      "command": "+sync",
+      "description": "Two-way sync between a local directory and a Drive folder",
+      "risk": "write",
+      "flags": [
+        {
+          "name": "folder-token",
+          "type": "string",
+          "description": "Drive folder token",
+          "required": false
+        },
+        {
+          "name": "local-dir",
+          "type": "string",
+          "description": "local root directory (relative to cwd)",
+          "required": false
+        },
+        {
+          "name": "on-conflict",
+          "type": "string",
+          "description": "conflict resolution when both sides modified a file (local-wins|remote-wins|keep-both|ask) (default \"remote-wins\")",
+          "required": false
+        },
+        {
+          "name": "on-duplicate-remote",
+          "type": "string",
+          "description": "policy when multiple remote Drive entries map to the same rel_path (fail|newest|oldest) (default \"fail\")",
+          "required": false
+        },
+        {
+          "name": "quick",
+          "type": "boolean",
+          "description": "best-effort modified_time comparison instead of SHA-256 hash; mismatched timestamps can still trigger real sync writes",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
       "command": "+task_result",
-      "description": "Poll async task result for import, export, drive move/delete, wiki move, or wiki delete-space operations",
+      "description": "Poll async task result for import, export, drive move/delete, wiki move, wiki delete-space, or wiki delete-node operations",
       "risk": "read",
       "flags": [
         {
@@ -3422,13 +3556,13 @@
         {
           "name": "scenario",
           "type": "string",
-          "description": "task scenario: import, export, task_check, wiki_move, or wiki_delete_space",
+          "description": "task scenario: import, export, task_check, wiki_move, wiki_delete_space, or wiki_delete_node",
           "required": false
         },
         {
           "name": "task-id",
           "type": "string",
-          "description": "async task ID (for drive task_check, wiki_move, or wiki_delete_space tasks)",
+          "description": "async task ID (for drive task_check, wiki_move, wiki_delete_space, or wiki_delete_node tasks)",
           "required": false
         },
         {
@@ -3473,6 +3607,104 @@
           "name": "wiki-token",
           "type": "string",
           "description": "target wiki node token (uploads under that wiki node; mutually exclusive with --folder-token)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
+      "command": "+version-delete",
+      "description": "Delete a specific historical version of a Drive file",
+      "risk": "high-risk-write",
+      "flags": [
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "target file token",
+          "required": false
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "description": "version from drive +version-history to delete (not tag)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
+      "command": "+version-get",
+      "description": "Download a specific version of a Drive file",
+      "risk": "read",
+      "flags": [
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "target file token",
+          "required": false
+        },
+        {
+          "name": "output",
+          "type": "string",
+          "description": "local save path or directory; omit to save into the current directory using the server filename",
+          "required": false
+        },
+        {
+          "name": "overwrite",
+          "type": "boolean",
+          "description": "existing output file",
+          "required": false
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "description": "version from drive +version-history (not tag)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
+      "command": "+version-history",
+      "description": "List the version history of a Drive file",
+      "risk": "read",
+      "flags": [
+        {
+          "name": "cursor",
+          "type": "string",
+          "description": "pagination cursor from the previous page's next_cursor",
+          "required": false
+        },
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "target file token",
+          "required": false
+        },
+        {
+          "name": "limit",
+          "type": "number",
+          "description": "max versions to return (1-200) (default 20)",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "drive",
+      "command": "+version-revert",
+      "description": "Revert a Drive file to a specific historical version",
+      "risk": "write",
+      "flags": [
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "target file token",
+          "required": false
+        },
+        {
+          "name": "version",
+          "type": "string",
+          "description": "version from drive +version-history to revert to (not tag)",
           "required": false
         }
       ]
@@ -5461,6 +5693,38 @@
           "name": "name",
           "type": "string",
           "description": "optional file name with .md suffix; overrides the existing/local file name",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "markdown",
+      "command": "+patch",
+      "description": "Patch a Markdown file in Drive via fetch-local-replace-overwrite",
+      "risk": "write",
+      "flags": [
+        {
+          "name": "content",
+          "type": "string",
+          "description": "replacement Markdown content (supports @file, - for stdin)",
+          "required": false
+        },
+        {
+          "name": "file-token",
+          "type": "string",
+          "description": "target Markdown file token",
+          "required": false
+        },
+        {
+          "name": "pattern",
+          "type": "string",
+          "description": "literal text or RE2 regex to match (supports @file, - for stdin)",
+          "required": false
+        },
+        {
+          "name": "regex",
+          "type": "boolean",
+          "description": "--pattern as RE2 regular expression",
           "required": false
         }
       ]
@@ -8590,6 +8854,64 @@
     },
     {
       "service": "wiki",
+      "command": "+node-delete",
+      "description": "Delete a wiki node, polling the async delete task when needed",
+      "risk": "high-risk-write",
+      "flags": [
+        {
+          "name": "include-children",
+          "type": "boolean",
+          "description": "delete the subtree (default); pass --include-children=false to lift direct children up to the parent (default true)",
+          "required": false
+        },
+        {
+          "name": "node-token",
+          "type": "string",
+          "description": "wiki node_token, cloud-doc obj_token, or a Lark URL embedding one of them",
+          "required": false
+        },
+        {
+          "name": "obj-type",
+          "type": "string",
+          "description": "token kind; no default — pass explicitly when --node-token is a raw token (URL inputs auto-infer) (wiki|doc|docx|sheet|bitable|mindnote|slides|file)",
+          "required": false
+        },
+        {
+          "name": "space-id",
+          "type": "string",
+          "description": "wiki space ID; auto-resolved via get_node when omitted",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "wiki",
+      "command": "+node-get",
+      "description": "Get wiki node details by node_token, obj_token, or Lark URL",
+      "risk": "read",
+      "flags": [
+        {
+          "name": "obj-type",
+          "type": "string",
+          "description": "obj_type when --token is an obj_token; auto-inferred from URL path when omitted (doc|docx|sheet|bitable|mindnote|slides|file)",
+          "required": false
+        },
+        {
+          "name": "space-id",
+          "type": "string",
+          "description": "optional: assert the resolved node lives in this space",
+          "required": false
+        },
+        {
+          "name": "token",
+          "type": "string",
+          "description": "wiki node_token, obj_token, or a Lark URL embedding one of them",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "wiki",
       "command": "+node-list",
       "description": "List wiki nodes in a space or under a parent node",
       "risk": "read",
@@ -8628,6 +8950,26 @@
           "name": "space-id",
           "type": "string",
           "description": "wiki space ID; use my_library for the personal document library, or +space-list to discover other space IDs",
+          "required": false
+        }
+      ]
+    },
+    {
+      "service": "wiki",
+      "command": "+space-create",
+      "description": "Create a wiki space",
+      "risk": "write",
+      "flags": [
+        {
+          "name": "description",
+          "type": "string",
+          "description": "wiki space description",
+          "required": false
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "wiki space name",
           "required": false
         }
       ]
